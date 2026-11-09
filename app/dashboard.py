@@ -1,43 +1,27 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QProgressBar, QPushButton, QVBoxLayout, QWidget
 
-
-def card(title: str, value: str, detail: str, accent: str = "") -> QFrame:
-    box = QFrame(objectName="card")
-    layout = QVBoxLayout(box); layout.setContentsMargins(18, 16, 18, 16); layout.setSpacing(7)
-    label = QLabel(title.upper(), objectName="eyebrow")
-    value_label = QLabel(value); value_label.setStyleSheet(f"font-size: 27px; font-weight: 700; color: {accent or 'inherit'};")
-    detail_label = QLabel(detail, objectName="muted")
-    layout.addWidget(label); layout.addWidget(value_label); layout.addWidget(detail_label)
-    return box
-
+def metric(label, value, note):
+    box=QFrame(objectName="card"); l=QVBoxLayout(box); l.setContentsMargins(18,17,18,17); l.setSpacing(5)
+    l.addWidget(QLabel(label.upper(),objectName="metricLabel")); number=QLabel(value,objectName="metric"); detail=QLabel(note,objectName="muted"); detail.setWordWrap(True); l.addWidget(number); l.addWidget(detail); return box,number,detail
 
 class Dashboard(QWidget):
     def __init__(self, import_action):
-        super().__init__()
-        root = QVBoxLayout(self); root.setContentsMargins(36, 30, 36, 30); root.setSpacing(24)
-        header = QHBoxLayout()
-        title_area = QVBoxLayout(); title_area.setSpacing(3)
-        title_area.addWidget(QLabel("Good afternoon", objectName="pageTitle"))
-        title_area.addWidget(QLabel("Your private photo library is ready when you are.", objectName="muted"))
-        import_button = QPushButton("Import folder", objectName="primary"); import_button.clicked.connect(import_action)
-        header.addLayout(title_area); header.addStretch(); header.addWidget(import_button)
-        root.addLayout(header)
-        stats = QGridLayout(); stats.setHorizontalSpacing(14); stats.setVerticalSpacing(14)
-        data = [("Photos", "0", "Start by importing a folder"), ("Duplicates", "—", "Scan your library to detect"), ("Categories", "0", "Organize memories automatically"), ("Needs review", "—", "Blur and quality checks")]
-        for index, entry in enumerate(data): stats.addWidget(card(*entry), 0, index)
-        root.addLayout(stats)
-        welcome = QFrame(objectName="card"); welcome.setMinimumHeight(230)
-        wl = QVBoxLayout(welcome); wl.setContentsMargins(28, 26, 28, 26); wl.setSpacing(10)
-        badge = QLabel("PIXORA STARTER", objectName="eyebrow"); badge.setStyleSheet("color: #9A8CFF;")
-        headline = QLabel("Bring your photo library\ninto focus."); headline.setStyleSheet("font-size: 29px; font-weight: 700;")
-        copy = QLabel("Import a folder to explore your photos, uncover duplicates,\nand get thoughtful quality recommendations — all on your device.", objectName="muted")
-        start = QPushButton("Choose a photo folder  →", objectName="primary"); start.setFixedWidth(202); start.clicked.connect(import_action)
-        wl.addWidget(badge); wl.addWidget(headline); wl.addWidget(copy); wl.addStretch(); wl.addWidget(start)
-        root.addWidget(welcome)
-        lower = QHBoxLayout(); lower.setSpacing(14)
-        activity = QFrame(objectName="card"); al = QVBoxLayout(activity); al.setContentsMargins(18, 18, 18, 18)
-        al.addWidget(QLabel("Recent activity", styleSheet="font-size: 16px; font-weight: 600;")); al.addStretch(); empty = QLabel("No activity yet\nYour processed photos will appear here.", objectName="muted"); empty.setAlignment(Qt.AlignCenter); al.addWidget(empty); al.addStretch()
-        privacy = QFrame(objectName="card"); pl = QVBoxLayout(privacy); pl.setContentsMargins(18, 18, 18, 18)
-        pl.addWidget(QLabel("Private by design", styleSheet="font-size: 16px; font-weight: 600;")); pl.addWidget(QLabel("Pixora works locally. Your photographs stay on your computer and originals are never overwritten.", objectName="muted")); pl.addStretch()
-        lower.addWidget(activity, 3); lower.addWidget(privacy, 2); root.addLayout(lower, 1)
+        super().__init__(); root=QVBoxLayout(self); root.setContentsMargins(32,26,32,30); root.setSpacing(20)
+        header=QHBoxLayout(); words=QVBoxLayout(); words.setSpacing(4); words.addWidget(QLabel("Your library",objectName="pageTitle")); words.addWidget(QLabel("Private, local photo intelligence — without changing your originals.",objectName="pageSub")); self.import_button=QPushButton("Import photo folder",objectName="primary"); self.import_button.clicked.connect(import_action); header.addLayout(words); header.addStretch(); header.addWidget(self.import_button); root.addLayout(header)
+        self.metric_values={}; grid=QGridLayout(); grid.setSpacing(12)
+        for col,(key,label,value,note) in enumerate([("photos","Library photos","0","No images imported yet"),("last","Last import","—","Choose a photo folder to begin"),("duplicates","Duplicate groups","—","Available after analysis"),("review","Needs review","—","Blur checks arrive next")]):
+            box,num,detail=metric(label,value,note); grid.addWidget(box,0,col); self.metric_values[key]=(num,detail)
+        root.addLayout(grid)
+        panel=QFrame(objectName="featureCard"); pl=QVBoxLayout(panel); pl.setContentsMargins(23,20,23,20); pl.setSpacing(10); top=QHBoxLayout(); top.addWidget(QLabel("Import status",styleSheet="font-size:17px;font-weight:700;")); self.status=QLabel("READY",objectName="pill"); top.addStretch(); top.addWidget(self.status); pl.addLayout(top); self.status_detail=QLabel("Choose a folder. Pixora will index supported images in the background.",objectName="pageSub"); self.status_detail.setWordWrap(True); pl.addWidget(self.status_detail); self.progress=QProgressBar(); self.progress.setRange(0,1); self.progress.setValue(0); self.progress.setTextVisible(False); pl.addWidget(self.progress); root.addWidget(panel)
+        lower=QHBoxLayout(); lower.setSpacing(12)
+        for title,body in [("Start with a clean import","Pixora supports JPEG, PNG, WebP, BMP, TIFF and GIF. Unsupported or unreadable files are reported clearly."),("Your photos remain yours","All scanning runs on this computer. Pixora stores a local index and never automatically deletes or overwrites a file.")]:
+            card=QFrame(objectName="card"); cl=QVBoxLayout(card); cl.setContentsMargins(21,19,21,19); cl.setSpacing(8); cl.addWidget(QLabel(title,styleSheet="font-size:17px;font-weight:700;")); copy=QLabel(body,objectName="pageSub"); copy.setWordWrap(True); cl.addWidget(copy); cl.addStretch(); lower.addWidget(card)
+        root.addLayout(lower); root.addStretch()
+    def begin_scan(self,total):
+        self.import_button.setEnabled(False); self.status.setText("SCANNING"); self.status_detail.setText(f"Found {total} supported file{'s' if total!=1 else ''}. Reading image metadata locally…"); self.progress.setRange(0,max(total,1)); self.progress.setValue(0)
+    def set_scan_progress(self,current,total): self.progress.setMaximum(max(total,1)); self.progress.setValue(current); self.status_detail.setText(f"Reading image {current} of {total}…")
+    def set_import_summary(self,library_count,result,folder):
+        self.import_button.setEnabled(True); self.progress.setValue(self.progress.maximum()); self.status.setText("COMPLETE"); imported,discovered,skipped=result['imported'],result['discovered'],result['skipped']; self.status_detail.setText(f"Imported {imported} readable image{'s' if imported!=1 else ''} from {discovered} supported file{'s' if discovered!=1 else ''}. {skipped} skipped."); self.metric_values['photos'][0].setText(str(library_count)); self.metric_values['photos'][1].setText("Indexed locally — originals untouched"); self.metric_values['last'][0].setText(str(imported)); self.metric_values['last'][1].setText(f"Readable images from {folder}")
+    def set_existing_count(self,count):
+        self.metric_values['photos'][0].setText(str(count)); self.metric_values['photos'][1].setText("Indexed locally — originals untouched")
