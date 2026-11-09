@@ -1,7 +1,10 @@
+"""Pixora desktop application main window and workspace router."""
+from __future__ import annotations
+
 from pathlib import Path
+from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QCheckBox,
     QFileDialog,
     QFrame,
     QHBoxLayout,
@@ -14,11 +17,16 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.best_shots_page import BestShotsPage
 from app.categories_page import CategoriesPage
 from app.dashboard import Dashboard
 from app.duplicates_page import DuplicatesPage
+from app.enhancer_page import EnhancerPage
 from app.gallery_page import GalleryPage
+from app.processed_page import ProcessedPage
+from app.settings_page import SettingsPage
 from app.theme import DARK, LIGHT, stylesheet
+from core.logger import logger
 from database.db_manager import DatabaseManager
 from workers.scanning_worker import ScanningWorker
 
@@ -35,65 +43,18 @@ PAGES = [
 ]
 
 
-class PlaceholderPage(QWidget):
-    def __init__(self, name: str):
-        super().__init__()
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(36, 30, 36, 30)
-        layout.setAlignment(Qt.AlignCenter)
-        title = QLabel(name, objectName="pageTitle")
-        title.setAlignment(Qt.AlignCenter)
-        message = QLabel(
-            "This workspace will become available in a future phase.\nPhases 1–5 are currently active.",
-            objectName="muted",
-        )
-        message.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title)
-        layout.addWidget(message)
-
-
-class SettingsPage(QWidget):
-    def __init__(self, toggle_theme):
-        super().__init__()
-        root = QVBoxLayout(self)
-        root.setContentsMargins(36, 30, 36, 30)
-        root.setSpacing(20)
-        root.addWidget(QLabel("Settings", objectName="pageTitle"))
-        root.addWidget(QLabel("Choose how Pixora feels and protects your library.", objectName="muted"))
-
-        panel = QFrame(objectName="card")
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(20, 18, 20, 18)
-        layout.setSpacing(14)
-
-        layout.addWidget(QLabel("Appearance", styleSheet="font-size: 17px; font-weight: 600;"))
-        light = QCheckBox("Use light appearance")
-        light.toggled.connect(toggle_theme)
-        layout.addWidget(light)
-
-        layout.addSpacing(8)
-        layout.addWidget(QLabel("Privacy", styleSheet="font-size: 17px; font-weight: 600;"))
-        local = QCheckBox("Keep all analysis and processing local")
-        local.setChecked(True)
-        local.setEnabled(False)
-        layout.addWidget(local)
-
-        root.addWidget(panel)
-        root.addStretch()
-
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.dark = True
         self.nav_buttons = []
         self.database = DatabaseManager()
-        self.worker = None
+        self.worker: Optional[ScanningWorker] = None
         self.imported_current = 0
 
         self.setWindowTitle("Pixora — AI-Powered Smart Photo Studio")
-        self.resize(1240, 780)
-        self.setMinimumSize(960, 620)
+        self.resize(1260, 800)
+        self.setMinimumSize(980, 640)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -101,8 +62,9 @@ class MainWindow(QMainWindow):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
 
+        # Sidebar navigation
         sidebar = QFrame(objectName="sidebar")
-        sidebar.setFixedWidth(238)
+        sidebar.setFixedWidth(240)
         nav = QVBoxLayout(sidebar)
         nav.setContentsMargins(14, 22, 14, 16)
         nav.setSpacing(5)
@@ -110,14 +72,38 @@ class MainWindow(QMainWindow):
         brand = QLabel("PIXORA", objectName="brand")
         nav.addWidget(brand)
         nav.addWidget(QLabel("SMART PHOTO STUDIO", objectName="section"))
-        nav.addSpacing(22)
+        nav.addSpacing(20)
 
+        # Instantiate all workspace pages
         self.stack = QStackedWidget()
         self.dashboard = Dashboard(self.import_folder)
-        self.gallery_page = GalleryPage(self.database, self.import_folder)
-        self.categories_page = CategoriesPage(self.database)
-        self.duplicate_page = DuplicatesPage(self.database, mode="exact")
-        self.similar_page = DuplicatesPage(self.database, mode="similar")
+        self.gallery_page = GalleryPage(
+            self.database,
+            import_callback=self.import_folder,
+            on_enhance_callback=self.open_in_enhancer,
+        )
+        self.categories_page = CategoriesPage(
+            self.database,
+            on_enhance_callback=self.open_in_enhancer,
+        )
+        self.duplicate_page = DuplicatesPage(
+            self.database,
+            mode="exact",
+            on_enhance_callback=self.open_in_enhancer,
+        )
+        self.similar_page = DuplicatesPage(
+            self.database,
+            mode="similar",
+            on_enhance_callback=self.open_in_enhancer,
+        )
+        self.best_shots_page = BestShotsPage(
+            self.database,
+            on_enhance_callback=self.open_in_enhancer,
+        )
+        self.enhancer_page = EnhancerPage(self.database)
+        self.processed_page = ProcessedPage(self.database)
+        self.settings_page = SettingsPage(self.apply_theme, self.database)
+        self.settings_page.library_cleared.connect(self.on_library_cleared)
 
         self.pages_map = {
             "Home": self.dashboard,
@@ -125,6 +111,10 @@ class MainWindow(QMainWindow):
             "Smart Categories": self.categories_page,
             "Duplicate Finder": self.duplicate_page,
             "Similar Photos": self.similar_page,
+            "Best Shots": self.best_shots_page,
+            "Image Enhancer": self.enhancer_page,
+            "Recently Processed": self.processed_page,
+            "Settings": self.settings_page,
         }
 
         for index, page in enumerate(PAGES):
@@ -134,14 +124,9 @@ class MainWindow(QMainWindow):
             nav.addWidget(button)
             self.nav_buttons.append(button)
 
-            if page in self.pages_map:
-                self.stack.addWidget(self.pages_map[page])
-            elif page == "Settings":
-                self.stack.addWidget(SettingsPage(self.apply_theme))
-            else:
-                self.stack.addWidget(PlaceholderPage(page))
+            self.stack.addWidget(self.pages_map[page])
 
-            if page == "Image Enhancer":
+            if page == "Recently Processed":
                 nav.addSpacing(10)
 
         nav.addStretch()
@@ -151,9 +136,12 @@ class MainWindow(QMainWindow):
         outer.addWidget(sidebar)
         outer.addWidget(self.stack, 1)
 
+        # Load persisted settings and update dashboard
         self.dashboard.set_existing_count(self.database.count_images())
+        saved_theme = self.database.get_setting("theme", "dark")
+        self.apply_theme(saved_theme == "light")
         self.switch_page(0)
-        self.apply_theme(False)
+        logger.info("Pixora desktop studio initialized successfully")
 
     def switch_page(self, index: int):
         self.stack.setCurrentIndex(index)
@@ -171,6 +159,22 @@ class MainWindow(QMainWindow):
             active_page.render_filtered_photos()
         elif isinstance(active_page, DuplicatesPage):
             active_page.reload_groups()
+        elif isinstance(active_page, BestShotsPage):
+            active_page.reload_photos()
+        elif isinstance(active_page, ProcessedPage):
+            active_page.reload_list()
+
+    def open_in_enhancer(self, image_path: str):
+        """Seamless state handoff: opens photo in Image Enhancer Studio from any page."""
+        idx = PAGES.index("Image Enhancer")
+        self.switch_page(idx)
+        self.enhancer_page.load_image(image_path)
+
+    def on_library_cleared(self):
+        self.dashboard.set_existing_count(0)
+        self.gallery_page.reload_gallery()
+        self.categories_page.refresh_badges()
+        self.categories_page.render_filtered_photos()
 
     def apply_theme(self, light: bool):
         self.dark = not light
@@ -197,18 +201,27 @@ class MainWindow(QMainWindow):
 
     def scan_finished(self, folder: str, result: dict):
         self.database.commit()
-        self.dashboard.set_import_summary(self.database.count_images(), result, Path(folder).name)
-        # Also reload gallery if user switches to it
+        total_count = self.database.count_images()
+        self.dashboard.set_import_summary(total_count, result, Path(folder).name)
         self.gallery_page.reload_gallery()
+        logger.info(f"Import finished from {folder}: {result['imported']} imported")
 
     def scan_failed(self, error: str):
+        logger.error(f"Scan failed: {error}")
         QMessageBox.critical(self, "Could not import folder", error)
 
     def closeEvent(self, event):
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait(1500)
-        for page in (self.gallery_page, self.categories_page, self.duplicate_page, self.similar_page):
+        for page in (
+            self.gallery_page,
+            self.categories_page,
+            self.duplicate_page,
+            self.similar_page,
+            self.best_shots_page,
+            self.enhancer_page,
+        ):
             w = getattr(page, "worker", None) or getattr(page, "thumb_worker", None)
             if w and w.isRunning():
                 w.cancel()

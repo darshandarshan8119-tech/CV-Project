@@ -136,11 +136,13 @@ class GalleryPage(QWidget):
         self,
         database: DatabaseManager,
         import_callback: Optional[Callable[[], None]] = None,
+        on_enhance_callback: Optional[Callable[[str], None]] = None,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.database = database
         self.import_callback = import_callback
+        self.on_enhance_callback = on_enhance_callback
         self.is_grid_view = True
         self.cards: List[ImageCard] = []
         self.thumb_worker: Optional[ThumbnailWorker] = None
@@ -339,6 +341,6 @@ class GalleryPage(QWidget):
                 break
 
     def open_preview(self, img_data: Dict[str, Any]):
-        dialog = PreviewDialog(img_data, self)
+        dialog = PreviewDialog(img_data, on_enhance_callback=self.on_enhance_callback, parent=self)
         dialog.exec()
 

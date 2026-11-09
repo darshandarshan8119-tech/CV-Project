@@ -5,17 +5,16 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QKeySequence, QShortcut
+from PySide6.QtGui import QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QScrollArea,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -43,9 +42,15 @@ def reveal_in_explorer(file_path: str):
 
 
 class PreviewDialog(QDialog):
-    def __init__(self, image_data: Dict[str, Any], parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        image_data: Dict[str, Any],
+        on_enhance_callback: Optional[Callable[[str], None]] = None,
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(parent)
         self.image_data = image_data
+        self.on_enhance_callback = on_enhance_callback
         self.setWindowTitle(f"Pixora Preview — {image_data.get('filename', 'Photo')}")
         self.resize(1020, 680)
         self.setMinimumSize(780, 500)
@@ -69,13 +74,13 @@ class PreviewDialog(QDialog):
 
         # Right sidebar: Metadata card
         meta_card = QFrame(objectName="card")
-        meta_card.setFixedWidth(300)
+        meta_card.setFixedWidth(310)
         meta_layout = QVBoxLayout(meta_card)
         meta_layout.setContentsMargins(18, 18, 18, 18)
-        meta_layout.setSpacing(12)
+        meta_layout.setSpacing(10)
 
         meta_layout.addWidget(QLabel("PHOTO DETAILS", objectName="metricLabel"))
-        
+
         name_lbl = QLabel(image_data.get("filename", "Unknown"))
         name_lbl.setStyleSheet("font-size: 16px; font-weight: 700;")
         name_lbl.setWordWrap(True)
@@ -86,7 +91,7 @@ class PreviewDialog(QDialog):
         read_only_pill.setStyleSheet("color: #55D49B; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;")
         meta_layout.addWidget(read_only_pill)
 
-        meta_layout.addSpacing(8)
+        meta_layout.addSpacing(6)
 
         # Info items
         w = image_data.get("width", 0)
@@ -97,9 +102,17 @@ class PreviewDialog(QDialog):
         conf = image_data.get("category_confidence", 0.0)
         conf_str = f" ({int(conf * 100)}%)" if conf else ""
 
+        q_score = image_data.get("quality_score", 0.0)
+        q_str = f"{int(q_score)}/100" if q_score else "Not rated yet"
+        if image_data.get("is_blurry"):
+            q_str += " (⚠ Soft / Blurry)"
+        elif q_score >= 75.0:
+            q_str += " (★ Crisp Quality)"
+
         for lbl, val in [
             ("Dimensions", dim_str),
             ("File Size", size_str),
+            ("Quality Rating", q_str),
             ("Category", f"{cat_str}{conf_str}"),
             ("Location", image_data.get("folder", "—")),
         ]:
@@ -113,18 +126,24 @@ class PreviewDialog(QDialog):
         path_box = QLabel(image_data.get("path", ""))
         path_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
         path_box.setWordWrap(True)
-        path_box.setStyleSheet("font-size: 12px; color: #8F97AA; background: rgba(0,0,0,0.15); padding: 8px; border-radius: 8px;")
+        path_box.setStyleSheet("font-size: 11px; color: #8F97AA; background: rgba(0,0,0,0.15); padding: 8px; border-radius: 8px;")
         meta_layout.addWidget(path_box)
 
         meta_layout.addStretch()
 
         # Action buttons
+        if self.on_enhance_callback:
+            btn_enhance = QPushButton("✨ Enhance in Studio", objectName="primary")
+            btn_enhance.setCursor(Qt.PointingHandCursor)
+            btn_enhance.clicked.connect(self._handle_enhance)
+            meta_layout.addWidget(btn_enhance)
+
         btn_reveal = QPushButton("Reveal in Explorer", objectName="secondary")
         btn_reveal.setCursor(Qt.PointingHandCursor)
         btn_reveal.clicked.connect(lambda: reveal_in_explorer(image_data.get("path", "")))
         meta_layout.addWidget(btn_reveal)
 
-        btn_close = QPushButton("Close Preview", objectName="primary")
+        btn_close = QPushButton("Close Preview", objectName="secondary")
         btn_close.setCursor(Qt.PointingHandCursor)
         btn_close.clicked.connect(self.accept)
         meta_layout.addWidget(btn_close)
@@ -136,6 +155,11 @@ class PreviewDialog(QDialog):
 
         # Load image safely
         self._load_pixmap()
+
+    def _handle_enhance(self):
+        self.accept()
+        if self.on_enhance_callback:
+            self.on_enhance_callback(self.image_data.get("path", ""))
 
     def _load_pixmap(self):
         path = self.image_data.get("path", "")
@@ -162,4 +186,3 @@ class PreviewDialog(QDialog):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_scaled_pixmap()
-

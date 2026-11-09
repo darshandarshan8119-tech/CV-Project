@@ -73,9 +73,15 @@ class CategoryBadge(QFrame):
 
 
 class CategoriesPage(QWidget):
-    def __init__(self, database: DatabaseManager, parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        database: DatabaseManager,
+        on_enhance_callback: Optional[Callable[[str], None]] = None,
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(parent)
         self.database = database
+        self.on_enhance_callback = on_enhance_callback
         self.selected_category = "All"
         self.worker: Optional[CategorizationWorker] = None
         self.thumb_worker: Optional[ThumbnailWorker] = None
@@ -233,7 +239,7 @@ class CategoriesPage(QWidget):
                 break
 
     def open_preview(self, img_data: Dict[str, Any]):
-        dialog = PreviewDialog(img_data, self)
+        dialog = PreviewDialog(img_data, on_enhance_callback=self.on_enhance_callback, parent=self)
         dialog.exec()
 
     def start_categorization(self):

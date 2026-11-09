@@ -156,11 +156,13 @@ class DuplicatesPage(QWidget):
         self,
         database: DatabaseManager,
         mode: str = "exact",  # "exact" or "similar"
+        on_enhance_callback: Optional[Callable[[str], None]] = None,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.database = database
         self.mode = mode
+        self.on_enhance_callback = on_enhance_callback
         self.worker: Optional[DuplicateWorker] = None
 
         root = QVBoxLayout(self)
@@ -274,7 +276,7 @@ class DuplicatesPage(QWidget):
         self.groups_layout.addStretch()
 
     def open_preview(self, img_data: Dict[str, Any]):
-        dialog = PreviewDialog(img_data, self)
+        dialog = PreviewDialog(img_data, on_enhance_callback=self.on_enhance_callback, parent=self)
         dialog.exec()
 
     def start_scan(self):
