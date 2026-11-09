@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pixora/
+processed/*
+!processed/.gitkeep
