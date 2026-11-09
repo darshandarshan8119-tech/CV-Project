@@ -208,5 +208,10 @@ class MainWindow(QMainWindow):
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait(1500)
+        for page in (self.gallery_page, self.categories_page, self.duplicate_page, self.similar_page):
+            w = getattr(page, "worker", None) or getattr(page, "thumb_worker", None)
+            if w and w.isRunning():
+                w.cancel()
+                w.wait(1000)
         self.database.close()
         event.accept()
