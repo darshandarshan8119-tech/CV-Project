@@ -1,6 +1,7 @@
 """Comprehensive smoke test suite runner for Pixora production readiness."""
 import sys
 import traceback
+import unittest
 from pathlib import Path
 
 # Ensure project root is in sys.path
@@ -24,6 +25,7 @@ from tests.test_quality import (
     test_similar_group_ranking,
 )
 from tests.test_thumbnails import test_thumbnail_generation_and_caching
+from tests.test_ui_widgets import TestUIThemeAndWidgets
 
 
 def run_all_tests() -> int:
@@ -38,6 +40,7 @@ def run_all_tests() -> int:
         ("Similar Group Best Shot Recommendation", test_similar_group_ranking),
         ("Local Image Enhancements & Scaling", test_enhancement_operations_and_scaling),
         ("Non-Destructive Export & Non-Overwrite", test_non_destructive_export_and_non_overwrite),
+        ("UI Theme, Animations & Interactive Slider", lambda: unittest.TextTestRunner(verbosity=0).run(unittest.TestLoader().loadTestsFromTestCase(TestUIThemeAndWidgets))),
     ]
 
     print("=" * 65)

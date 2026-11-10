@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.animations import HoverLiftFilter
 from app.preview_dialog import PreviewDialog, format_size, reveal_in_explorer
 from core.duplicates import hamming_distance
 from core.thumbnails import generate_thumbnail, get_cached_thumbnail_path
@@ -31,23 +32,24 @@ class DuplicateItemRow(QFrame):
         self.data = data
         self.setObjectName("card")
         self.setCursor(Qt.PointingHandCursor)
+        self.hover_filter = HoverLiftFilter(self, glow_color=QColor(124, 108, 255, 35), blur_radius=12)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(14)
+        layout.setContentsMargins(14, 10, 14, 10)
+        layout.setSpacing(16)
 
         # Thumbnail
         self.thumb_label = QLabel()
         self.thumb_label.setFixedSize(60, 60)
         self.thumb_label.setAlignment(Qt.AlignCenter)
-        self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.25); border-radius: 6px;")
+        self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.35); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);")
         layout.addWidget(self.thumb_label)
 
         # Metadata
         info_col = QVBoxLayout()
         info_col.setSpacing(3)
         name_lbl = QLabel(data.get("filename", "Photo"))
-        name_lbl.setStyleSheet("font-weight: 700; font-size: 14px;")
+        name_lbl.setStyleSheet("font-weight: 700; font-size: 14px; color: #FFFFFF;")
         info_col.addWidget(name_lbl)
 
         path_lbl = QLabel(data.get("path", ""), objectName="muted")
@@ -76,7 +78,7 @@ class DuplicateItemRow(QFrame):
         btn_del = QPushButton("Delete", objectName="secondary")
         btn_del.setEnabled(False)
         btn_del.setToolTip("Deletion is disabled: Pixora preserves all original files in read-only mode.")
-        btn_del.setStyleSheet("opacity: 0.5;")
+        btn_del.setStyleSheet("opacity: 0.45;")
         layout.addWidget(btn_del)
 
         self.load_thumbnail()
@@ -112,23 +114,25 @@ class DuplicateGroupCard(QFrame):
     ):
         super().__init__(parent)
         self.setObjectName("featureCard")
+        self.hover_filter = HoverLiftFilter(self, glow_color=QColor(244, 63, 94 if is_exact else 124, 108, 255, 45), blur_radius=16)
+
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(18, 16, 18, 16)
-        layout.setSpacing(10)
+        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setSpacing(12)
 
         # Group header
         top = QHBoxLayout()
         if is_exact:
             title = QLabel(f"Exact Duplicate Group — {len(images)} copies")
-            title.setStyleSheet("font-weight: 700; font-size: 15px;")
+            title.setStyleSheet("font-weight: 700; font-size: 15px; color: #FFFFFF;")
             top.addWidget(title)
             top.addStretch()
             badge = QLabel("100% BYTE-FOR-BYTE (SHA-256)", objectName="pill")
-            badge.setStyleSheet("color: #E27D60; font-weight: 700; font-size: 11px;")
+            badge.setStyleSheet("color: #FB7185; font-weight: 700; font-size: 11px;")
             top.addWidget(badge)
         else:
             title = QLabel(f"Visually Similar Group — {len(images)} photos")
-            title.setStyleSheet("font-weight: 700; font-size: 15px;")
+            title.setStyleSheet("font-weight: 700; font-size: 15px; color: #FFFFFF;")
             top.addWidget(title)
             top.addStretch()
 
@@ -139,7 +143,7 @@ class DuplicateGroupCard(QFrame):
                 sim_pct = max(50, int((1.0 - dist / 64.0) * 100))
 
             badge = QLabel(f"~{sim_pct}% VISUAL SIMILARITY (PERCEPTUAL HASH)", objectName="pill")
-            badge.setStyleSheet("color: #7C6CFF; font-weight: 700; font-size: 11px;")
+            badge.setStyleSheet("color: #9487FF; font-weight: 700; font-size: 11px;")
             top.addWidget(badge)
 
         layout.addLayout(top)
@@ -166,8 +170,8 @@ class DuplicatesPage(QWidget):
         self.worker: Optional[DuplicateWorker] = None
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(32, 26, 32, 24)
-        root.setSpacing(16)
+        root.setContentsMargins(36, 28, 36, 24)
+        root.setSpacing(18)
 
         # Header
         header = QHBoxLayout()
@@ -177,11 +181,11 @@ class DuplicatesPage(QWidget):
         if self.mode == "exact":
             title_text = "Duplicate Finder"
             desc_text = "Detect exact byte-for-byte duplicate photos using cryptographic SHA-256 hashes."
-            btn_text = "Scan for Duplicates"
+            btn_text = "✦  Scan for Duplicates"
         else:
             title_text = "Similar Photos"
             desc_text = "Detect visually similar, burst, or edited photos using perceptual hashing (pHash)."
-            btn_text = "Scan Similar Photos"
+            btn_text = "✦  Scan Similar Photos"
 
         words.addWidget(QLabel(title_text, objectName="pageTitle"))
         words.addWidget(QLabel(desc_text, objectName="pageSub"))
@@ -199,11 +203,11 @@ class DuplicatesPage(QWidget):
         self.progress_panel = QFrame(objectName="card")
         self.progress_panel.setVisible(False)
         p_layout = QVBoxLayout(self.progress_panel)
-        p_layout.setContentsMargins(16, 12, 16, 12)
-        p_layout.setSpacing(8)
+        p_layout.setContentsMargins(18, 14, 18, 14)
+        p_layout.setSpacing(10)
 
         p_top = QHBoxLayout()
-        self.progress_status = QLabel("Analyzing cryptographic & perceptual hashes…", styleSheet="font-weight: 600;")
+        self.progress_status = QLabel("Analyzing cryptographic & perceptual hashes…", styleSheet="font-weight: 600; color: #FFFFFF;")
         p_top.addWidget(self.progress_status)
         p_top.addStretch()
 
@@ -255,12 +259,15 @@ class DuplicatesPage(QWidget):
             empty_card = QFrame(objectName="card")
             el = QVBoxLayout(empty_card)
             el.setAlignment(Qt.AlignCenter)
-            el.setContentsMargins(30, 40, 30, 40)
-            el.setSpacing(8)
+            el.setContentsMargins(30, 48, 30, 48)
+            el.setSpacing(10)
 
             t = QLabel(empty_title, objectName="pageTitle")
             t.setAlignment(Qt.AlignCenter)
-            d = QLabel(f"{empty_desc}\nClick '{'Scan for Duplicates' if is_exact else 'Scan Similar Photos'}' above to analyze your images.", objectName="muted")
+            d = QLabel(
+                f"{empty_desc}\nClick '{'Scan for Duplicates' if is_exact else 'Scan Similar Photos'}' above to analyze your images.",
+                objectName="muted",
+            )
             d.setAlignment(Qt.AlignCenter)
             el.addWidget(t)
             el.addWidget(d)
@@ -311,4 +318,3 @@ class DuplicatesPage(QWidget):
     def _on_failed(self, error: str):
         self.btn_scan.setEnabled(True)
         self.progress_status.setText(f"Scan error: {error}")
-

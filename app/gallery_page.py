@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QColor, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.animations import HoverLiftFilter
 from app.preview_dialog import PreviewDialog, format_size
 from core.thumbnails import get_cached_thumbnail_path
 from database.db_manager import DatabaseManager
@@ -37,22 +38,25 @@ class ImageCard(QFrame):
         self.setObjectName("card")
         self.setCursor(Qt.PointingHandCursor)
 
+        # Micro-interaction hover lift
+        self.hover_filter = HoverLiftFilter(self, glow_color=QColor(124, 108, 255, 45), blur_radius=14)
+
         if is_grid:
-            self.setFixedSize(185, 235)
+            self.setFixedSize(195, 245)
             layout = QVBoxLayout(self)
             layout.setContentsMargins(8, 8, 8, 8)
             layout.setSpacing(6)
 
-            # Thumbnail box
+            # Thumbnail container
             self.thumb_label = QLabel()
             self.thumb_label.setAlignment(Qt.AlignCenter)
-            self.thumb_label.setFixedSize(169, 145)
-            self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.25); border-radius: 8px;")
+            self.thumb_label.setFixedSize(179, 150)
+            self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.35); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);")
             layout.addWidget(self.thumb_label)
 
             # Filename
             self.name_label = QLabel(data.get("filename", "Photo"))
-            self.name_label.setStyleSheet("font-weight: 600; font-size: 13px;")
+            self.name_label.setStyleSheet("font-weight: 700; font-size: 13px; color: #FFFFFF;")
             self.name_label.setWordWrap(False)
             layout.addWidget(self.name_label)
 
@@ -65,21 +69,21 @@ class ImageCard(QFrame):
             self.meta_label.setStyleSheet("font-size: 11px;")
             layout.addWidget(self.meta_label)
         else:
-            self.setFixedHeight(64)
+            self.setFixedHeight(68)
             layout = QHBoxLayout(self)
-            layout.setContentsMargins(12, 6, 16, 6)
-            layout.setSpacing(14)
+            layout.setContentsMargins(14, 8, 18, 8)
+            layout.setSpacing(16)
 
             self.thumb_label = QLabel()
             self.thumb_label.setAlignment(Qt.AlignCenter)
             self.thumb_label.setFixedSize(52, 52)
-            self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.25); border-radius: 6px;")
+            self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.35); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);")
             layout.addWidget(self.thumb_label)
 
             info_layout = QVBoxLayout()
             info_layout.setSpacing(2)
             self.name_label = QLabel(data.get("filename", "Photo"))
-            self.name_label.setStyleSheet("font-weight: 600; font-size: 14px;")
+            self.name_label.setStyleSheet("font-weight: 700; font-size: 14px; color: #FFFFFF;")
             info_layout.addWidget(self.name_label)
 
             path_lbl = QLabel(data.get("path", ""), objectName="muted")
@@ -148,8 +152,8 @@ class GalleryPage(QWidget):
         self.thumb_worker: Optional[ThumbnailWorker] = None
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(32, 26, 32, 24)
-        root.setSpacing(16)
+        root.setContentsMargins(36, 28, 36, 24)
+        root.setSpacing(18)
 
         # Top Header Bar
         header = QHBoxLayout()
@@ -164,9 +168,8 @@ class GalleryPage(QWidget):
 
         # Search Bar
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search by filename…")
-        self.search_input.setFixedWidth(240)
-        self.search_input.setStyleSheet("padding: 7px 12px; border-radius: 8px; border: 1px solid #292E3B;")
+        self.search_input.setPlaceholderText("🔍  Search by filename…")
+        self.search_input.setFixedWidth(250)
         self.search_input.textChanged.connect(self.reload_gallery)
         header.addWidget(self.search_input)
 
@@ -180,19 +183,18 @@ class GalleryPage(QWidget):
             "Size (Largest)",
             "Size (Smallest)",
         ])
-        self.sort_combo.setStyleSheet("padding: 6px 10px; border-radius: 8px;")
         self.sort_combo.currentIndexChanged.connect(self.reload_gallery)
         header.addWidget(self.sort_combo)
 
         # View Toggle Buttons
         self.btn_grid = QPushButton("Grid", objectName="primary")
         self.btn_grid.setCursor(Qt.PointingHandCursor)
-        self.btn_grid.setFixedWidth(65)
+        self.btn_grid.setFixedWidth(68)
         self.btn_grid.clicked.connect(lambda: self.set_view_mode(True))
 
         self.btn_list = QPushButton("List", objectName="secondary")
         self.btn_list.setCursor(Qt.PointingHandCursor)
-        self.btn_list.setFixedWidth(65)
+        self.btn_list.setFixedWidth(68)
         self.btn_list.clicked.connect(lambda: self.set_view_mode(False))
 
         header.addWidget(self.btn_grid)
@@ -210,7 +212,7 @@ class GalleryPage(QWidget):
         self.scroll_content = QWidget()
         self.grid_layout = QGridLayout(self.scroll_content)
         self.grid_layout.setContentsMargins(4, 8, 4, 16)
-        self.grid_layout.setSpacing(12)
+        self.grid_layout.setSpacing(14)
         self.scroll_area.setWidget(self.scroll_content)
         self.stack.addWidget(self.scroll_area)
 
@@ -221,7 +223,7 @@ class GalleryPage(QWidget):
         empty_layout.setSpacing(14)
 
         icon_lbl = QLabel("📷")
-        icon_lbl.setStyleSheet("font-size: 48px;")
+        icon_lbl.setStyleSheet("font-size: 52px; margin-bottom: 8px;")
         icon_lbl.setAlignment(Qt.AlignCenter)
         empty_layout.addWidget(icon_lbl)
 
@@ -235,12 +237,14 @@ class GalleryPage(QWidget):
         )
         empty_desc.setAlignment(Qt.AlignCenter)
         empty_desc.setWordWrap(True)
+        empty_desc.setStyleSheet("max-width: 480px; line-height: 1.4;")
         empty_layout.addWidget(empty_desc)
 
-        empty_layout.addSpacing(10)
+        empty_layout.addSpacing(12)
         btn_import = QPushButton("Import Photo Folder", objectName="primary")
         btn_import.setCursor(Qt.PointingHandCursor)
-        btn_import.setFixedWidth(200)
+        btn_import.setFixedWidth(210)
+        btn_import.setStyleSheet("padding: 10px 20px; font-size: 13px;")
         if self.import_callback:
             btn_import.clicked.connect(self.import_callback)
         empty_layout.addWidget(btn_import, alignment=Qt.AlignCenter)
@@ -343,4 +347,3 @@ class GalleryPage(QWidget):
     def open_preview(self, img_data: Dict[str, Any]):
         dialog = PreviewDialog(img_data, on_enhance_callback=self.on_enhance_callback, parent=self)
         dialog.exec()
-

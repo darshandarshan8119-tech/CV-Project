@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.animations import HoverLiftFilter
 from app.preview_dialog import format_size, reveal_in_explorer
 from core.thumbnails import generate_thumbnail, get_cached_thumbnail_path
 from database.db_manager import DatabaseManager
@@ -28,23 +29,24 @@ class ProcessedItemCard(QFrame):
         super().__init__(parent)
         self.record = record
         self.setObjectName("card")
+        self.hover_filter = HoverLiftFilter(self, glow_color=QColor(124, 108, 255, 35), blur_radius=12)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(14, 12, 14, 12)
+        layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(16)
 
         # Thumbnail
         self.thumb_label = QLabel()
         self.thumb_label.setFixedSize(68, 68)
         self.thumb_label.setAlignment(Qt.AlignCenter)
-        self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.25); border-radius: 8px;")
+        self.thumb_label.setStyleSheet("background: rgba(0,0,0,0.35); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);")
         layout.addWidget(self.thumb_label)
 
         # Metadata Details
         info = QVBoxLayout()
         info.setSpacing(3)
         name_lbl = QLabel(record.get("filename", "Enhanced Photo"))
-        name_lbl.setStyleSheet("font-size: 14px; font-weight: 700;")
+        name_lbl.setStyleSheet("font-size: 14px; font-weight: 700; color: #FFFFFF;")
         info.addWidget(name_lbl)
 
         src_lbl = QLabel(f"Source: {Path(record.get('source_path', '')).name}", objectName="muted")
@@ -117,8 +119,8 @@ class ProcessedPage(QWidget):
         self.database = database
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(32, 26, 32, 24)
-        root.setSpacing(16)
+        root.setContentsMargins(36, 28, 36, 24)
+        root.setSpacing(18)
 
         # Header
         header = QHBoxLayout()
@@ -166,7 +168,7 @@ class ProcessedPage(QWidget):
             empty_card = QFrame(objectName="card")
             el = QVBoxLayout(empty_card)
             el.setAlignment(Qt.AlignCenter)
-            el.setContentsMargins(30, 40, 30, 40)
+            el.setContentsMargins(30, 48, 30, 48)
             el.setSpacing(8)
             el.addWidget(QLabel("No Processed Photos Yet", objectName="pageTitle"))
             el.addWidget(
@@ -183,4 +185,3 @@ class ProcessedPage(QWidget):
             self.list_layout.addWidget(card)
 
         self.list_layout.addStretch()
-

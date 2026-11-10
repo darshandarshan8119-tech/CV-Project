@@ -165,7 +165,7 @@ def rank_group_photos(
         item["is_recommended"] = (i == 0)
         if i == 0:
             item["group_recommendation"] = (
-                f"★ Recommended Best Shot: Score {int(item.get('quality_score', 0))}/100 "
+                f"Recommended Best Shot: score {int(item.get('quality_score', 0))}/100 "
                 f"({item.get('quality_explanation', 'Top sharpness and balance')})"
             )
         else:

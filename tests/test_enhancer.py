@@ -69,3 +69,4 @@ def test_non_destructive_export_and_non_overwrite():
         with open(src_path, "rb") as f:
             final_hash = hashlib.sha256(f.read()).hexdigest()
         assert orig_hash == final_hash
+

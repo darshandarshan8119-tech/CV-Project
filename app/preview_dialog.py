@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QPixmap, QShortcut
+from PySide6.QtGui import QColor, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QDialog,
     QFrame,
@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from app.animations import HoverLiftFilter, fade_in_widget
 
 
 def format_size(bytes_num: int) -> str:
@@ -52,43 +54,45 @@ class PreviewDialog(QDialog):
         self.image_data = image_data
         self.on_enhance_callback = on_enhance_callback
         self.setWindowTitle(f"Pixora Preview — {image_data.get('filename', 'Photo')}")
-        self.resize(1020, 680)
-        self.setMinimumSize(780, 500)
+        self.resize(1060, 720)
+        self.setMinimumSize(820, 540)
         self.setModal(True)
 
         # Outer layout
         outer = QHBoxLayout(self)
-        outer.setContentsMargins(16, 16, 16, 16)
-        outer.setSpacing(16)
+        outer.setContentsMargins(20, 20, 20, 20)
+        outer.setSpacing(18)
 
         # Left / Center: Image viewport
         img_container = QFrame(objectName="featureCard")
+        HoverLiftFilter(img_container, blur_radius=20)
         img_layout = QVBoxLayout(img_container)
-        img_layout.setContentsMargins(8, 8, 8, 8)
+        img_layout.setContentsMargins(12, 12, 12, 12)
 
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.image_label.setStyleSheet("background: rgba(0,0,0,0.4); border-radius: 10px;")
         img_layout.addWidget(self.image_label)
         outer.addWidget(img_container, stretch=3)
 
         # Right sidebar: Metadata card
         meta_card = QFrame(objectName="card")
-        meta_card.setFixedWidth(310)
+        meta_card.setFixedWidth(320)
+        HoverLiftFilter(meta_card, blur_radius=14)
         meta_layout = QVBoxLayout(meta_card)
-        meta_layout.setContentsMargins(18, 18, 18, 18)
+        meta_layout.setContentsMargins(22, 20, 22, 20)
         meta_layout.setSpacing(10)
 
         meta_layout.addWidget(QLabel("PHOTO DETAILS", objectName="metricLabel"))
 
         name_lbl = QLabel(image_data.get("filename", "Unknown"))
-        name_lbl.setStyleSheet("font-size: 16px; font-weight: 700;")
+        name_lbl.setStyleSheet("font-size: 17px; font-weight: 700; color: #FFFFFF;")
         name_lbl.setWordWrap(True)
         meta_layout.addWidget(name_lbl)
 
         # Badge pill
-        read_only_pill = QLabel("● READ-ONLY (ORIGINAL UNTOUCHED)")
-        read_only_pill.setStyleSheet("color: #55D49B; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;")
+        read_only_pill = QLabel("● READ-ONLY (ORIGINAL UNTOUCHED)", objectName="pillSuccess")
         meta_layout.addWidget(read_only_pill)
 
         meta_layout.addSpacing(6)
@@ -105,9 +109,9 @@ class PreviewDialog(QDialog):
         q_score = image_data.get("quality_score", 0.0)
         q_str = f"{int(q_score)}/100" if q_score else "Not rated yet"
         if image_data.get("is_blurry"):
-            q_str += " (⚠ Soft / Blurry)"
+            q_str += " (Soft / blurry)"
         elif q_score >= 75.0:
-            q_str += " (★ Crisp Quality)"
+            q_str += " (Crisp quality)"
 
         for lbl, val in [
             ("Dimensions", dim_str),
@@ -126,14 +130,16 @@ class PreviewDialog(QDialog):
         path_box = QLabel(image_data.get("path", ""))
         path_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
         path_box.setWordWrap(True)
-        path_box.setStyleSheet("font-size: 11px; color: #8F97AA; background: rgba(0,0,0,0.15); padding: 8px; border-radius: 8px;")
+        path_box.setStyleSheet(
+            "font-size: 11px; color: #8F97AA; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);"
+        )
         meta_layout.addWidget(path_box)
 
         meta_layout.addStretch()
 
         # Action buttons
         if self.on_enhance_callback:
-            btn_enhance = QPushButton("✨ Enhance in Studio", objectName="primary")
+            btn_enhance = QPushButton("✦  Enhance in Studio", objectName="primary")
             btn_enhance.setCursor(Qt.PointingHandCursor)
             btn_enhance.clicked.connect(self._handle_enhance)
             meta_layout.addWidget(btn_enhance)
@@ -155,6 +161,10 @@ class PreviewDialog(QDialog):
 
         # Load image safely
         self._load_pixmap()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        fade_in_widget(self, duration=180)
 
     def _handle_enhance(self):
         self.accept()

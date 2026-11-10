@@ -81,3 +81,4 @@ def test_fresh_database_initialization():
         assert db.get_setting("blur_threshold") == "140.0"
 
         db.close()
+

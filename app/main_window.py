@@ -12,11 +12,11 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
-    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
 
+from app.animations import AnimatedStackedWidget
 from app.best_shots_page import BestShotsPage
 from app.categories_page import CategoriesPage
 from app.dashboard import Dashboard
@@ -30,16 +30,16 @@ from core.logger import logger
 from database.db_manager import DatabaseManager
 from workers.scanning_worker import ScanningWorker
 
-PAGES = [
-    "Home",
-    "My Gallery",
-    "Smart Categories",
-    "Duplicate Finder",
-    "Similar Photos",
-    "Best Shots",
-    "Image Enhancer",
-    "Recently Processed",
-    "Settings",
+PAGE_DEFS = [
+    ("Home", "🏠 Home"),
+    ("My Gallery", "🖼️ My Gallery"),
+    ("Smart Categories", "🏷️ Smart Categories"),
+    ("Duplicate Finder", "👥 Duplicate Finder"),
+    ("Similar Photos", "🪞 Similar Photos"),
+    ("Best Shots", "⭐ Best Shots"),
+    ("Image Enhancer", "✨ Image Enhancer"),
+    ("Recently Processed", "🕒 Recently Processed"),
+    ("Settings", "⚙️ Settings"),
 ]
 
 
@@ -53,8 +53,8 @@ class MainWindow(QMainWindow):
         self.imported_current = 0
 
         self.setWindowTitle("Pixora — AI-Powered Smart Photo Studio")
-        self.resize(1260, 800)
-        self.setMinimumSize(980, 640)
+        self.resize(1300, 840)
+        self.setMinimumSize(1020, 680)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -64,18 +64,33 @@ class MainWindow(QMainWindow):
 
         # Sidebar navigation
         sidebar = QFrame(objectName="sidebar")
-        sidebar.setFixedWidth(240)
+        sidebar.setFixedWidth(245)
         nav = QVBoxLayout(sidebar)
-        nav.setContentsMargins(14, 22, 14, 16)
-        nav.setSpacing(5)
+        nav.setContentsMargins(14, 24, 14, 18)
+        nav.setSpacing(4)
 
+        # Brand header
+        brand_row = QHBoxLayout()
+        brand_row.setSpacing(8)
+        brand_logo = QLabel("✦")
+        brand_logo.setStyleSheet("font-size: 20px; color: #7C6CFF;")
         brand = QLabel("PIXORA", objectName="brand")
-        nav.addWidget(brand)
-        nav.addWidget(QLabel("SMART PHOTO STUDIO", objectName="section"))
-        nav.addSpacing(20)
+        brand_row.addWidget(brand_logo)
+        brand_row.addWidget(brand)
+        brand_row.addStretch()
+        nav.addLayout(brand_row)
 
-        # Instantiate all workspace pages
-        self.stack = QStackedWidget()
+        sub_brand = QLabel("CREATIVE PHOTO STUDIO", objectName="section")
+        sub_brand.setStyleSheet("margin-left: 28px; margin-top: -2px;")
+        nav.addWidget(sub_brand)
+        nav.addSpacing(22)
+
+        # Section label
+        nav.addWidget(QLabel("WORKSPACES", objectName="section"))
+        nav.addSpacing(6)
+
+        # Instantiate animated router & all workspace pages
+        self.stack = AnimatedStackedWidget()
         self.dashboard = Dashboard(self.import_folder)
         self.gallery_page = GalleryPage(
             self.database,
@@ -117,21 +132,41 @@ class MainWindow(QMainWindow):
             "Settings": self.settings_page,
         }
 
-        for index, page in enumerate(PAGES):
-            button = QPushButton(page)
+        for index, (key, display_label) in enumerate(PAGE_DEFS):
+            button = QPushButton(display_label, objectName="navButton")
             button.setCursor(Qt.PointingHandCursor)
             button.clicked.connect(lambda checked=False, i=index: self.switch_page(i))
             nav.addWidget(button)
             self.nav_buttons.append(button)
 
-            self.stack.addWidget(self.pages_map[page])
+            self.stack.addWidget(self.pages_map[key])
 
-            if page == "Recently Processed":
-                nav.addSpacing(10)
+            if key == "Recently Processed":
+                nav.addSpacing(14)
+                nav.addWidget(QLabel("PREFERENCES", objectName="section"))
+                nav.addSpacing(4)
 
         nav.addStretch()
-        status = QLabel("LOCAL-ONLY PROCESSING", objectName="section")
-        nav.addWidget(status)
+
+        # Engine status card at sidebar footer
+        status_box = QFrame(objectName="glassPanel")
+        status_box.setStyleSheet("padding: 8px 10px; background: rgba(124, 108, 255, 0.08); border-radius: 8px;")
+        s_layout = QVBoxLayout(status_box)
+        s_layout.setContentsMargins(8, 8, 8, 8)
+        s_layout.setSpacing(3)
+        
+        status_top = QHBoxLayout()
+        dot = QLabel("●")
+        dot.setStyleSheet("color: #10B981; font-size: 10px;")
+        status_title = QLabel("LOCAL ENGINE", styleSheet="font-size: 11px; font-weight: 700; color: #10B981; letter-spacing: 0.8px;")
+        status_top.addWidget(dot)
+        status_top.addWidget(status_title)
+        status_top.addStretch()
+        s_layout.addLayout(status_top)
+        
+        status_sub = QLabel("100% Private • Offline CV", styleSheet="font-size: 11px; color: #7C8497;")
+        s_layout.addWidget(status_sub)
+        nav.addWidget(status_box)
 
         outer.addWidget(sidebar)
         outer.addWidget(self.stack, 1)
@@ -141,14 +176,14 @@ class MainWindow(QMainWindow):
         saved_theme = self.database.get_setting("theme", "dark")
         self.apply_theme(saved_theme == "light")
         self.switch_page(0)
-        logger.info("Pixora desktop studio initialized successfully")
+        logger.info("Pixora desktop studio initialized successfully with motion design")
 
     def switch_page(self, index: int):
-        self.stack.setCurrentIndex(index)
+        self.stack.slide_to_index(index)
         for i, button in enumerate(self.nav_buttons):
-            button.setObjectName("navActive" if i == index else "")
-        self.style().unpolish(self)
-        self.style().polish(self)
+            button.setObjectName("navActive" if i == index else "navButton")
+            button.style().unpolish(button)
+            button.style().polish(button)
 
         # Refresh page state on navigation
         active_page = self.stack.currentWidget()
@@ -166,7 +201,7 @@ class MainWindow(QMainWindow):
 
     def open_in_enhancer(self, image_path: str):
         """Seamless state handoff: opens photo in Image Enhancer Studio from any page."""
-        idx = PAGES.index("Image Enhancer")
+        idx = [k for k, _ in PAGE_DEFS].index("Image Enhancer")
         self.switch_page(idx)
         self.enhancer_page.load_image(image_path)
 

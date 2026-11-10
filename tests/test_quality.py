@@ -73,3 +73,4 @@ def test_similar_group_ranking():
         assert "Recommended Best Shot" in ranked[0]["group_recommendation"]
         assert ranked[1]["is_recommended"] is False
         assert ranked[2]["is_recommended"] is False
+

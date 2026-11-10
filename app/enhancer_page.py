@@ -1,4 +1,4 @@
-"""Local non-destructive photo enhancement studio workspace."""
+"""Local non-destructive photo enhancement studio workspace with interactive before/after split slider."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -23,7 +23,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.animations import HoverLiftFilter
 from app.preview_dialog import reveal_in_explorer
+from app.widgets import BeforeAfterSliderWidget, GlowCard
 from core.enhancer import apply_preset, enhance_photo
 from core.logger import logger
 from database.db_manager import DatabaseManager
@@ -41,8 +43,8 @@ class EnhancerPage(QWidget):
         self.view_mode = "split"  # "split", "enhanced", "original"
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(32, 26, 32, 24)
-        root.setSpacing(14)
+        root.setContentsMargins(36, 28, 36, 24)
+        root.setSpacing(16)
 
         # Header
         header = QHBoxLayout()
@@ -51,19 +53,19 @@ class EnhancerPage(QWidget):
         words.addWidget(QLabel("Image Enhancer Studio", objectName="pageTitle"))
         words.addWidget(
             QLabel(
-                "Local non-destructive adjustments (CLAHE, bilateral denoising, unsharp masking, and Lanczos scaling).",
+                "Non-destructive adjustments (CLAHE, bilateral denoising, unsharp masking, and Lanczos scaling).",
                 objectName="pageSub",
             )
         )
         header.addLayout(words)
         header.addStretch()
 
-        self.btn_select_file = QPushButton("Choose Photo to Enhance…", objectName="secondary")
+        self.btn_select_file = QPushButton("📁 Choose Photo to Enhance…", objectName="secondary")
         self.btn_select_file.setCursor(Qt.PointingHandCursor)
         self.btn_select_file.clicked.connect(self.choose_file)
         header.addWidget(self.btn_select_file)
 
-        self.btn_save = QPushButton("Export Enhanced Copy", objectName="primary")
+        self.btn_save = QPushButton("✦  Export Enhanced Copy", objectName="primary")
         self.btn_save.setCursor(Qt.PointingHandCursor)
         self.btn_save.setEnabled(False)
         self.btn_save.clicked.connect(self.export_image)
@@ -71,23 +73,29 @@ class EnhancerPage(QWidget):
 
         root.addLayout(header)
 
-        # Main Studio Split: Left Viewport (Before/After) + Right Control Sidebar
+        # Main Studio Split: Left Interactive Comparison Viewport + Right Control Sidebar
         studio_split = QHBoxLayout()
-        studio_split.setSpacing(16)
+        studio_split.setSpacing(18)
 
         # Left Viewport
         viewport_frame = QFrame(objectName="featureCard")
+        HoverLiftFilter(viewport_frame, blur_radius=14)
         v_layout = QVBoxLayout(viewport_frame)
-        v_layout.setContentsMargins(12, 12, 12, 12)
+        v_layout.setContentsMargins(14, 14, 14, 14)
+        v_layout.setSpacing(10)
 
         # View mode toggle buttons
         mode_bar = QHBoxLayout()
-        self.mode_lbl = QLabel("LIVE PREVIEW (LOCAL CV ENGINE)")
+        self.mode_lbl = QLabel("INTERACTIVE BEFORE / AFTER SLIDER")
         self.mode_lbl.setStyleSheet("font-size: 11px; font-weight: 700; color: #7C8497; letter-spacing: 0.8px;")
         mode_bar.addWidget(self.mode_lbl)
         mode_bar.addStretch()
 
-        self.btn_mode_enhanced = QPushButton("Enhanced View", objectName="primary")
+        self.btn_mode_split = QPushButton("Split Slider", objectName="primary")
+        self.btn_mode_split.setCursor(Qt.PointingHandCursor)
+        self.btn_mode_split.clicked.connect(lambda: self.set_preview_mode("split"))
+
+        self.btn_mode_enhanced = QPushButton("Enhanced View", objectName="secondary")
         self.btn_mode_enhanced.setCursor(Qt.PointingHandCursor)
         self.btn_mode_enhanced.clicked.connect(lambda: self.set_preview_mode("enhanced"))
 
@@ -95,16 +103,15 @@ class EnhancerPage(QWidget):
         self.btn_mode_original.setCursor(Qt.PointingHandCursor)
         self.btn_mode_original.clicked.connect(lambda: self.set_preview_mode("original"))
 
+        mode_bar.addWidget(self.btn_mode_split)
         mode_bar.addWidget(self.btn_mode_enhanced)
         mode_bar.addWidget(self.btn_mode_original)
         v_layout.addLayout(mode_bar)
 
-        self.preview_label = QLabel()
-        self.preview_label.setAlignment(Qt.AlignCenter)
-        self.preview_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        self.preview_label.setText("No photo selected.\nClick 'Choose Photo to Enhance' or open an image from My Gallery.")
-        self.preview_label.setStyleSheet("color: #7C8497; font-size: 15px;")
-        v_layout.addWidget(self.preview_label, stretch=1)
+        # Interactive split comparison canvas
+        self.compare_widget = BeforeAfterSliderWidget()
+        self.compare_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        v_layout.addWidget(self.compare_widget, stretch=1)
 
         # Status & Progress bar
         self.progress_bar = QProgressBar()
@@ -113,7 +120,7 @@ class EnhancerPage(QWidget):
         self.progress_bar.setVisible(False)
         v_layout.addWidget(self.progress_bar)
 
-        self.info_status = QLabel("Ready")
+        self.info_status = QLabel("Ready • Drag the central divider to compare before and after")
         self.info_status.setStyleSheet("font-size: 12px; color: #7C8497;")
         v_layout.addWidget(self.info_status)
 
@@ -121,17 +128,25 @@ class EnhancerPage(QWidget):
 
         # Right Controls Sidebar
         sidebar_frame = QFrame(objectName="card")
-        sidebar_frame.setFixedWidth(330)
+        sidebar_frame.setFixedWidth(340)
         s_layout = QVBoxLayout(sidebar_frame)
-        s_layout.setContentsMargins(18, 16, 18, 16)
-        s_layout.setSpacing(10)
+        s_layout.setContentsMargins(20, 18, 20, 18)
+        s_layout.setSpacing(12)
 
         s_layout.addWidget(QLabel("ONE-CLICK PRESETS", objectName="metricLabel"))
 
         presets_grid = QHBoxLayout()
-        for p_name, p_key in [("Auto Magic", "magic_auto"), ("Landscape", "vibrant_landscape"), ("Portrait", "portrait_glow"), ("B&W", "bw_film")]:
+        presets_grid.setSpacing(6)
+        presets_list = [
+            ("✨ Auto", "magic_auto"),
+            ("🌿 Landscape", "vibrant_landscape"),
+            ("👤 Portrait", "portrait_glow"),
+            ("🎞️ B&W", "bw_film"),
+        ]
+        for p_name, p_key in presets_list:
             btn = QPushButton(p_name, objectName="secondary")
             btn.setCursor(Qt.PointingHandCursor)
+            btn.setStyleSheet("padding: 7px 8px; font-size: 11px;")
             btn.clicked.connect(lambda checked=False, k=p_key: self.apply_preset_filter(k))
             presets_grid.addWidget(btn)
         s_layout.addLayout(presets_grid)
@@ -153,7 +168,7 @@ class EnhancerPage(QWidget):
 
         for key, title, min_val, max_val, def_val in slider_defs:
             row = QHBoxLayout()
-            row.addWidget(QLabel(title, styleSheet="font-size: 13px; font-weight: 600;"))
+            row.addWidget(QLabel(title, styleSheet="font-size: 12px; font-weight: 600;"))
             val_lbl = QLabel(str(def_val), objectName="muted")
             val_lbl.setFixedWidth(35)
             val_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -187,7 +202,7 @@ class EnhancerPage(QWidget):
             objectName="muted",
         )
         future_note.setWordWrap(True)
-        future_note.setStyleSheet("font-size: 11px; margin-top: 6px;")
+        future_note.setStyleSheet("font-size: 11px; margin-top: 6px; line-height: 1.3;")
         s_layout.addWidget(future_note)
 
         s_layout.addStretch()
@@ -279,28 +294,33 @@ class EnhancerPage(QWidget):
 
     def set_preview_mode(self, mode: str):
         self.view_mode = mode
+        self.btn_mode_split.setObjectName("primary" if mode == "split" else "secondary")
         self.btn_mode_enhanced.setObjectName("primary" if mode == "enhanced" else "secondary")
         self.btn_mode_original.setObjectName("primary" if mode == "original" else "secondary")
-        self.btn_mode_enhanced.style().unpolish(self.btn_mode_enhanced)
-        self.btn_mode_enhanced.style().polish(self.btn_mode_enhanced)
-        self.btn_mode_original.style().unpolish(self.btn_mode_original)
-        self.btn_mode_original.style().polish(self.btn_mode_original)
-        self.update_preview_display()
+
+        for b in (self.btn_mode_split, self.btn_mode_enhanced, self.btn_mode_original):
+            b.style().unpolish(b)
+            b.style().polish(b)
+
+        if mode == "split":
+            self.compare_widget.set_split_ratio(0.5)
+        elif mode == "enhanced":
+            self.compare_widget.set_split_ratio(0.0)
+        elif mode == "original":
+            self.compare_widget.set_split_ratio(1.0)
+
+    def _array_to_pixmap(self, arr: Optional[np.ndarray]) -> Optional[QPixmap]:
+        if arr is None:
+            return None
+        h, w, ch = arr.shape
+        bytes_per_line = ch * w
+        q_img = QImage(arr.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        return QPixmap.fromImage(q_img)
 
     def update_preview_display(self):
-        target_arr = self.original_rgb if self.view_mode == "original" else self.enhanced_rgb
-        if target_arr is None:
-            return
-
-        h, w, ch = target_arr.shape
-        bytes_per_line = ch * w
-        q_img = QImage(target_arr.data, w, h, bytes_per_line, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(q_img)
-
-        target_size = self.preview_label.size()
-        if target_size.width() > 50 and target_size.height() > 50:
-            scaled = pixmap.scaled(target_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            self.preview_label.setPixmap(scaled)
+        pm_orig = self._array_to_pixmap(self.original_rgb)
+        pm_enh = self._array_to_pixmap(self.enhanced_rgb)
+        self.compare_widget.set_images(pm_orig, pm_enh)
 
     def reset_adjustments(self, trigger: bool = True):
         for s in self.sliders.values():
@@ -366,8 +386,3 @@ class EnhancerPage(QWidget):
             reveal_in_explorer(output_path)
 
         self.info_status.setText(f"Exported: {out_name} (original untouched)")
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.update_preview_display()
-

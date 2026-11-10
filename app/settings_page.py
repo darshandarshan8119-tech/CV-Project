@@ -17,11 +17,11 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSlider,
-    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
 
+from app.animations import HoverLiftFilter
 from core.logger import logger
 from database.db_manager import DatabaseManager
 
@@ -40,21 +40,22 @@ class SettingsPage(QWidget):
         self.database = database
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(36, 30, 36, 30)
+        root.setContentsMargins(36, 28, 36, 30)
         root.setSpacing(20)
 
         # Header
         root.addWidget(QLabel("Settings & Preferences", objectName="pageTitle"))
-        root.addWidget(QLabel("Configure appearance, storage paths, quality metrics, and library data.", objectName="muted"))
+        root.addWidget(QLabel("Configure appearance, storage paths, quality metrics, and library data.", objectName="pageSub"))
 
         # 1. Appearance Card
         c1 = QFrame(objectName="card")
+        HoverLiftFilter(c1, blur_radius=12)
         l1 = QVBoxLayout(c1)
-        l1.setContentsMargins(20, 18, 20, 18)
+        l1.setContentsMargins(22, 18, 22, 18)
         l1.setSpacing(10)
-        l1.addWidget(QLabel("Appearance", styleSheet="font-size: 16px; font-weight: 700;"))
+        l1.addWidget(QLabel("Appearance Theme", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
 
-        self.theme_check = QCheckBox("Use Light Mode")
+        self.theme_check = QCheckBox("Use Light Mode (Studio Titanium)")
         is_light = self.database.get_setting("theme", "dark") == "light"
         self.theme_check.setChecked(is_light)
         self.theme_check.toggled.connect(self._handle_theme_toggle)
@@ -63,10 +64,11 @@ class SettingsPage(QWidget):
 
         # 2. Storage & Export Directory Card
         c2 = QFrame(objectName="card")
+        HoverLiftFilter(c2, blur_radius=12)
         l2 = QVBoxLayout(c2)
-        l2.setContentsMargins(20, 18, 20, 18)
+        l2.setContentsMargins(22, 18, 22, 18)
         l2.setSpacing(10)
-        l2.addWidget(QLabel("Processed Output Directory", styleSheet="font-size: 16px; font-weight: 700;"))
+        l2.addWidget(QLabel("Processed Output Directory", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
         l2.addWidget(
             QLabel("Where enhanced copies and exported images are saved. Your original source photos are never modified.", objectName="muted")
         )
@@ -76,7 +78,6 @@ class SettingsPage(QWidget):
         current_dir = self.database.get_setting("processed_dir", str(Path("processed").resolve()))
         self.dir_input.setText(current_dir)
         self.dir_input.setReadOnly(True)
-        self.dir_input.setStyleSheet("padding: 8px 12px; border-radius: 8px; border: 1px solid #292E3B;")
         dir_row.addWidget(self.dir_input, stretch=1)
 
         btn_browse = QPushButton("Change Folder…", objectName="secondary")
@@ -94,10 +95,11 @@ class SettingsPage(QWidget):
 
         # 3. Quality & Blur Thresholds Card
         c3 = QFrame(objectName="card")
+        HoverLiftFilter(c3, blur_radius=12)
         l3 = QVBoxLayout(c3)
-        l3.setContentsMargins(20, 18, 20, 18)
+        l3.setContentsMargins(22, 18, 22, 18)
         l3.setSpacing(12)
-        l3.addWidget(QLabel("Quality & Blur Sensitivity", styleSheet="font-size: 16px; font-weight: 700;"))
+        l3.addWidget(QLabel("Quality & Blur Sensitivity", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
         l3.addWidget(
             QLabel("Tune deterministic computer vision thresholds for sharpness and 'Needs Review' blur detection.", objectName="muted")
         )
@@ -105,8 +107,8 @@ class SettingsPage(QWidget):
         # Blur threshold slider
         blur_val = float(self.database.get_setting("blur_threshold", "130.0"))
         blur_row = QHBoxLayout()
-        blur_row.addWidget(QLabel("Blur Cutoff (Laplacian Variance):", styleSheet="font-weight: 600;"))
-        self.blur_lbl = QLabel(f"{int(blur_val)}", objectName="pill")
+        blur_row.addWidget(QLabel("Blur Cutoff (Laplacian Variance):", styleSheet="font-weight: 600; font-size: 13px;"))
+        self.blur_lbl = QLabel(f"{int(blur_val)}", objectName="pillActive")
         blur_row.addStretch()
         blur_row.addWidget(self.blur_lbl)
         l3.addLayout(blur_row)
@@ -125,10 +127,11 @@ class SettingsPage(QWidget):
 
         # 4. Privacy & Maintenance Card
         c4 = QFrame(objectName="card")
+        HoverLiftFilter(c4, blur_radius=12)
         l4 = QVBoxLayout(c4)
-        l4.setContentsMargins(20, 18, 20, 18)
+        l4.setContentsMargins(22, 18, 22, 18)
         l4.setSpacing(12)
-        l4.addWidget(QLabel("Privacy & Library Maintenance", styleSheet="font-size: 16px; font-weight: 700;"))
+        l4.addWidget(QLabel("Privacy & Library Maintenance", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
 
         local_privacy = QCheckBox("Local-Only Privacy: Zero cloud uploads, zero telemetry")
         local_privacy.setChecked(True)
@@ -143,7 +146,7 @@ class SettingsPage(QWidget):
 
         btn_clear = QPushButton("Clear Local Index…", objectName="secondary")
         btn_clear.setCursor(Qt.PointingHandCursor)
-        btn_clear.setStyleSheet("color: #E27D60;")
+        btn_clear.setStyleSheet("color: #FB7185;")
         btn_clear.clicked.connect(self._clear_index)
         btn_row.addWidget(btn_clear)
         btn_row.addStretch()
@@ -201,4 +204,3 @@ class SettingsPage(QWidget):
             self.database.clear_library(delete_processed=False)
             QMessageBox.information(self, "Index Cleared", "The local index has been successfully reset.")
             self.library_cleared.emit()
-

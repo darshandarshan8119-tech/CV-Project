@@ -38,6 +38,7 @@ Pixora is a private, local-first desktop photo studio built with **Python**, **P
 - **Burst / Similar Group Best Shot**: Automatically ranks photos within similar groups and marks the top-recommended shot with score comparisons.
 
 ### 6. Image Enhancer Studio
+- **Interactive Before/After Split Slider**: Real-time draggable divider overlaying both original and enhanced images for side-by-side comparison.
 - **Local Non-Destructive Operations**:
   - Brightness (-100 to +100) & Contrast (-100 to +100).
   - Saturation (-100 to +100) & Color Warmth (-100 to +100).
@@ -45,8 +46,19 @@ Pixora is a private, local-first desktop photo studio built with **Python**, **P
   - Unsharp masking sharpness (0 to 100).
   - High-fidelity **Lanczos-4** super-sampling upscaling (1.0×, 1.5×, 2.0×, 4.0×).
 - **Curated Presets**: "Auto Magic" (CLAHE + vibrance), "Vibrant Landscape", "Portrait Glow", "B&W Film".
-- **Interactive Live Preview**: Split view comparing enhanced image against original.
+- **Interactive Live Preview**: Split view comparing enhanced image against original with smooth handle drag.
 - **Safe Export**: Saves copies exclusively to the configured `processed/` directory with collision-resistant naming (original photos are never touched).
+
+---
+
+## Premium UI/UX & Motion Design System
+Pixora features a commercial creative-software aesthetic inspired by modern design systems:
+- **Obsidian Dark & Titanium Light Themes**: Deep charcoal background (`#090A0F`), translucent glassmorphic panels (`rgba(20,23,34,0.78)`), and electric-violet accents (`#7C6CFF`).
+- **Animated Page Transitions**: `AnimatedStackedWidget` with cross-fade opacity and subtle slide easing (`QEasingCurve.OutCubic`, 200ms).
+- **Animated Numeric Counters**: `NumberCounter` smoothly counts up dashboard metrics on data import.
+- **Micro-Interaction Hover Effects**: `HoverLiftFilter` providing ambient drop shadows and tactile lift on cards, badges, and buttons.
+- **Interactive Before/After Split Comparison Slider**: Custom `BeforeAfterSliderWidget` with smooth drag physics, circular glowing thumb, and dynamic label badges.
+- **Modern Control Elements**: Slim custom scrollbars, glowing slider thumbs, pill status tags, and segmented filter buttons.
 
 ### 7. Recently Processed
 - Centralized gallery of all enhanced and exported photos.
