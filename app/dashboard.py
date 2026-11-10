@@ -57,14 +57,14 @@ class Dashboard(QWidget):
         grid.setSpacing(14)
 
         metrics_config = [
-            ("photos", "Total Indexed Photos", 0, "No images imported yet", "LIVE"),
-            ("last", "Last Imported Batch", 0, "Choose a folder to start", "FOLDER"),
-            ("duplicates", "Duplicate Groups", 0, "Run Duplicate Finder to detect", "SHA-256"),
-            ("review", "Needs Review (Blurry)", 0, "Evaluate sharpness in Best Shots", "CV SCORED"),
+            ("photos", "Total Indexed Photos", 0, "No images imported yet", "LIVE", "violet"),
+            ("last", "Last Imported Batch", 0, "Choose a folder to start", "FOLDER", "cyan"),
+            ("duplicates", "Duplicate Groups", 0, "Run Duplicate Finder to detect", "SHA-256", "coral"),
+            ("review", "Needs Review (Blurry)", 0, "Evaluate sharpness in Best Shots", "CV SCORED", "emerald"),
         ]
 
-        for col, (key, label, val, sub_text, tag) in enumerate(metrics_config):
-            card = MetricCard(label, initial_value=val, subtitle=sub_text, tag=tag)
+        for col, (key, label, val, sub_text, tag, glow_color) in enumerate(metrics_config):
+            card = MetricCard(label, initial_value=val, subtitle=sub_text, tag=tag, glow_name=glow_color)
             grid.addWidget(card, 0, col)
             self.metric_cards[key] = card
 
@@ -72,14 +72,14 @@ class Dashboard(QWidget):
 
         # Import & Scanning Status Feature Card
         self.status_panel = QFrame(objectName="featureCard")
-        HoverLiftFilter(self.status_panel, blur_radius=16)
+        self.status_panel.setCursor(Qt.PointingHandCursor)
+        HoverLiftFilter(self.status_panel, blur_radius=14, glow_name="violet")
         pl = QVBoxLayout(self.status_panel)
         pl.setContentsMargins(24, 20, 24, 20)
         pl.setSpacing(12)
 
         top_status = QHBoxLayout()
-        st_title = QLabel("Engine Activity Status")
-        st_title.setStyleSheet("font-size: 16px; font-weight: 700; color: #FFFFFF;")
+        st_title = QLabel("Engine Activity Status", objectName="cardTitle")
         top_status.addWidget(st_title)
         top_status.addStretch()
 
@@ -112,23 +112,25 @@ class Dashboard(QWidget):
                 "Deterministic Computer Vision",
                 "Heuristic classification, Laplacian blur variance, and perceptual hashing run locally via OpenCV and Pillow. No telemetry, no cloud costs.",
                 "🔒 PRIVATE",
+                "emerald",
             ),
             (
                 "Non-Destructive Guarantee",
                 "Your original photos are strictly read-only. Enhanced and scaled versions are saved to your chosen output folder with zero risk to originals.",
                 "🛡️ PROTECTED",
+                "cyan",
             ),
         ]
 
-        for title_text, desc_text, badge_text in info_items:
-            card = GlowCard()
+        for title_text, desc_text, badge_text, glow_name in info_items:
+            card = GlowCard(glow_name=glow_name)
+            card.setCursor(Qt.PointingHandCursor)
             cl = QVBoxLayout(card)
             cl.setContentsMargins(22, 20, 22, 20)
             cl.setSpacing(8)
 
             c_top = QHBoxLayout()
-            lbl_title = QLabel(title_text)
-            lbl_title.setStyleSheet("font-size: 15px; font-weight: 700; color: #FFFFFF;")
+            lbl_title = QLabel(title_text, objectName="cardTitle")
             c_top.addWidget(lbl_title)
             c_top.addStretch()
 

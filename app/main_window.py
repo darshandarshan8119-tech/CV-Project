@@ -164,7 +164,8 @@ class MainWindow(QMainWindow):
         status_top.addStretch()
         s_layout.addLayout(status_top)
         
-        status_sub = QLabel("100% Private • Offline CV", styleSheet="font-size: 11px; color: #7C8497;")
+        status_sub = QLabel("100% Private • Offline CV", objectName="muted")
+        status_sub.setStyleSheet("font-size: 11px;")
         s_layout.addWidget(status_sub)
         nav.addWidget(status_box)
 

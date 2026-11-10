@@ -62,8 +62,9 @@ class CategoryBadge(QFrame):
 
         top_row = QHBoxLayout()
         icon = CATEGORY_ICONS.get(category_name, "📁")
-        icon_lbl = QLabel(f"{icon}  {category_name}")
-        icon_lbl.setStyleSheet(f"font-weight: 700; font-size: 14px; color: {'#9487FF' if is_active else '#FFFFFF'};")
+        icon_lbl = QLabel(f"{icon}  {category_name}", objectName="cardTitle")
+        if is_active:
+            icon_lbl.setStyleSheet("color: #7C6CFF;")
         top_row.addWidget(icon_lbl)
         top_row.addStretch()
 
@@ -130,7 +131,8 @@ class CategoriesPage(QWidget):
         p_layout.setSpacing(10)
 
         p_top = QHBoxLayout()
-        self.progress_status = QLabel("Analyzing image contents with local heuristics…", styleSheet="font-weight: 600; color: #FFFFFF;")
+        self.progress_status = QLabel("Analyzing image contents with local heuristics…", objectName="cardTitle")
+        self.progress_status.setStyleSheet("font-weight: 600; font-size: 13px;")
         p_top.addWidget(self.progress_status)
         p_top.addStretch()
 
@@ -153,7 +155,8 @@ class CategoriesPage(QWidget):
         root.addLayout(self.badges_layout)
 
         # Filter Subheader
-        self.filter_header = QLabel("Showing All Photos", styleSheet="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-top: 6px;")
+        self.filter_header = QLabel("Showing All Photos", objectName="pageTitle")
+        self.filter_header.setStyleSheet("font-size: 16px; margin-top: 6px;")
         root.addWidget(self.filter_header)
 
         # Filtered Photo Scroll Area

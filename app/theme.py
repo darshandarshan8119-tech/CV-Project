@@ -1,90 +1,98 @@
 """Pixora's premium creative-software theme tokens and comprehensive styling.
 
 Features:
-- Deep Charcoal / Obsidian dark mode with vibrant electric-violet & cyan accents.
-- Modern Glassmorphism panel and card definitions with soft translucent borders.
-- Sleek modern scrollbars, sliders, inputs, dropdowns, and buttons.
-- Light mode support (clean Studio Titanium palette).
+- Obsidian Dark and Studio Titanium Light modes with high-contrast, crystal-clear typography.
+- Eliminated child widget background inheritance (no unwanted shadow/banding boxes inside blocks).
+- Interactive card hover glow effects with corresponding colors (violet, emerald, coral, cyan).
+- Pointer cursor feedback on all interactive blocks.
 """
 from __future__ import annotations
 
 DARK = {
     # Backgrounds & canvas
-    "bg": "#090A0F",
-    "bg_subtle": "#0F1118",
-    "panel": "#141722",
-    "panel_hi": "#1B2030",
-    "raised": "#232A3E",
-    "raised_hover": "#2B334B",
+    "bg": "#0B0C12",
+    "bg_subtle": "#12141F",
+    "panel": "#171A27",
+    "panel_hi": "#1F2334",
+    "panel_hover": "#262C42",
+    "raised": "#252B3E",
+    "raised_hover": "#2E364E",
     
     # Glassmorphism tokens
-    "glass_bg": "rgba(20, 23, 34, 0.78)",
+    "glass_bg": "rgba(23, 26, 39, 0.90)",
     "glass_border": "rgba(255, 255, 255, 0.08)",
-    "glass_border_hi": "rgba(124, 108, 255, 0.35)",
+    "glass_border_hi": "rgba(124, 108, 255, 0.45)",
     
-    # Text
-    "text": "#F3F5FA",
+    # Text - Crystal clear high contrast
+    "text": "#E2E8F0",
     "text_bright": "#FFFFFF",
-    "subtext": "#9FA9C0",
-    "muted": "#69738A",
-    "line": "#262D40",
-    "line_subtle": "#1B2030",
+    "subtext": "#94A3B8",
+    "muted": "#717D96",
+    "line": "#262D42",
+    "line_subtle": "#1C2030",
     
     # Accents & Glows
     "accent": "#7C6CFF",
     "accent_hi": "#9487FF",
     "accent_deep": "#5B4AE0",
-    "accent_glow": "rgba(124, 108, 255, 0.28)",
-    "accent_light": "rgba(124, 108, 255, 0.12)",
+    "accent_glow": "#7C6CFF",
+    "accent_light": "rgba(124, 108, 255, 0.16)",
     
     # Status / Functional Colors
     "success": "#10B981",
-    "success_glow": "rgba(16, 185, 129, 0.25)",
-    "success_bg": "rgba(16, 185, 129, 0.12)",
+    "success_glow": "#10B981",
+    "success_bg": "rgba(16, 185, 129, 0.14)",
     "warning": "#F59E0B",
-    "warning_glow": "rgba(245, 158, 11, 0.25)",
-    "danger": "#F43F5E",
-    "danger_glow": "rgba(244, 63, 94, 0.25)",
+    "warning_glow": "#F59E0B",
+    "danger": "#FB7185",
+    "danger_glow": "#FB7185",
     "info": "#06B6D4",
+    "info_glow": "#06B6D4",
     
-    # Shadows
-    "shadow_sm": "rgba(0, 0, 0, 0.35)",
-    "shadow_lg": "rgba(0, 0, 0, 0.55)",
+    "shadow_sm": "rgba(0, 0, 0, 0.4)",
+    "shadow_lg": "rgba(0, 0, 0, 0.65)",
 }
 
 LIGHT = {
-    "bg": "#F5F7FB",
-    "bg_subtle": "#ECEFF5",
+    # Backgrounds & canvas
+    "bg": "#F4F6FB",
+    "bg_subtle": "#EAEDF5",
     "panel": "#FFFFFF",
-    "panel_hi": "#F8FAFC",
-    "raised": "#EDF2F7",
-    "raised_hover": "#E2E8F0",
+    "panel_hi": "#F8FAFD",
+    "panel_hover": "#F0F4FA",
+    "raised": "#EDF1F7",
+    "raised_hover": "#E2E7F0",
     
-    "glass_bg": "rgba(255, 255, 255, 0.88)",
+    # Glassmorphism tokens
+    "glass_bg": "rgba(255, 255, 255, 0.96)",
     "glass_border": "rgba(0, 0, 0, 0.08)",
-    "glass_border_hi": "rgba(94, 80, 214, 0.3)",
+    "glass_border_hi": "rgba(99, 85, 255, 0.35)",
     
-    "text": "#0F172A",
-    "text_bright": "#020617",
+    # Text - Deep rich slate for maximum readability on white
+    "text": "#1E293B",
+    "text_bright": "#0F172A",
     "subtext": "#475569",
-    "muted": "#94A3B8",
-    "line": "#E2E8F0",
+    "muted": "#64748B",
+    "line": "#DDE3ED",
     "line_subtle": "#EEF2F6",
     
+    # Accents & Glows
     "accent": "#6355FF",
     "accent_hi": "#5143EE",
     "accent_deep": "#4031D4",
-    "accent_glow": "rgba(99, 85, 255, 0.22)",
-    "accent_light": "rgba(99, 85, 255, 0.08)",
+    "accent_glow": "#6355FF",
+    "accent_light": "rgba(99, 85, 255, 0.12)",
     
+    # Status / Functional Colors
     "success": "#059669",
-    "success_glow": "rgba(5, 150, 105, 0.2)",
-    "success_bg": "rgba(5, 150, 105, 0.08)",
+    "success_glow": "#059669",
+    "success_bg": "rgba(5, 150, 105, 0.12)",
     "warning": "#D97706",
-    "warning_glow": "rgba(217, 119, 6, 0.2)",
+    "warning_glow": "#D97706",
     "danger": "#E11D48",
-    "danger_glow": "rgba(225, 29, 72, 0.2)",
+    "danger_glow": "#E11D48",
     "info": "#0891B2",
+    "info_glow": "#0891B2",
     
     "shadow_sm": "rgba(0, 0, 0, 0.06)",
     "shadow_lg": "rgba(0, 0, 0, 0.12)",
@@ -92,7 +100,7 @@ LIGHT = {
 
 
 def stylesheet(c: dict) -> str:
-    """Generate high-fidelity desktop stylesheet with modern creative-software aesthetics."""
+    """Generate high-fidelity desktop stylesheet with crystal-clear visibility and no child ghosting."""
     return f"""
     * {{
         font-family: 'Segoe UI', -apple-system, 'SF Pro Display', BlinkMacSystemFont, Roboto, sans-serif;
@@ -101,9 +109,27 @@ def stylesheet(c: dict) -> str:
         outline: none;
     }}
 
-    QMainWindow, QWidget {{
+    QMainWindow {{
         background: {c['bg']};
+    }}
+
+    /* Prevent QWidget background from leaking into child labels / layout items */
+    QWidget {{
         color: {c['text']};
+    }}
+
+    QLabel {{
+        background: transparent;
+        color: {c['text']};
+    }}
+
+    QScrollArea {{
+        background: transparent;
+        border: none;
+    }}
+
+    QScrollArea > QWidget > QWidget {{
+        background: transparent;
     }}
 
     /* =========================================================================
@@ -115,14 +141,10 @@ def stylesheet(c: dict) -> str:
     }}
 
     QLabel#brand {{
-        font-size: 20px;
+        font-size: 21px;
         font-weight: 800;
         letter-spacing: 2px;
         color: {c['text_bright']};
-    }}
-
-    QLabel#brandAccent {{
-        color: {c['accent']};
     }}
 
     QLabel#section {{
@@ -134,37 +156,74 @@ def stylesheet(c: dict) -> str:
     }}
 
     /* =========================================================================
-       CARDS & PANELS (Glassmorphism & Neumorphic depths)
+       CARDS & BLOCKS (With clean corresponding hover glow effects)
        ========================================================================= */
     QFrame#card {{
         background: {c['panel']};
         border: 1px solid {c['line']};
         border-radius: 12px;
     }}
+
     QFrame#card:hover {{
-        border: 1px solid {c['line']};
+        border: 1.5px solid {c['accent_hi']};
+        background: {c['panel_hi']};
+    }}
+
+    QFrame#card[glow="emerald"]:hover {{
+        border: 1.5px solid {c['success']};
+    }}
+
+    QFrame#card[glow="coral"]:hover {{
+        border: 1.5px solid {c['danger']};
+    }}
+
+    QFrame#card[glow="cyan"]:hover {{
+        border: 1.5px solid {c['info']};
     }}
 
     QFrame#featureCard {{
         background: {c['panel_hi']};
-        border: 1px solid {c['glass_border_hi']};
+        border: 1.5px solid {c['line']};
         border-radius: 14px;
+    }}
+
+    QFrame#featureCard:hover {{
+        border: 1.5px solid {c['accent']};
+    }}
+
+    QFrame#featureCard[glow="emerald"]:hover {{
+        border: 1.5px solid {c['success']};
+    }}
+
+    QFrame#featureCard[glow="coral"]:hover {{
+        border: 1.5px solid {c['danger']};
     }}
 
     QFrame#glassPanel {{
         background: {c['glass_bg']};
         border: 1px solid {c['glass_border']};
-        border-radius: 14px;
+        border-radius: 12px;
+    }}
+
+    /* Child widgets inside cards must have transparent background to prevent banding */
+    QFrame#card QWidget, QFrame#featureCard QWidget, QFrame#glassPanel QWidget {{
+        background: transparent;
     }}
 
     /* =========================================================================
-       TYPOGRAPHY HIERARCHY
+       TYPOGRAPHY HIERARCHY (Ensures crisp contrast in both Dark and Light)
        ========================================================================= */
     QLabel#pageTitle {{
         font-size: 24px;
         font-weight: 700;
         color: {c['text_bright']};
         letter-spacing: -0.3px;
+    }}
+
+    QLabel#cardTitle {{
+        font-size: 15px;
+        font-weight: 700;
+        color: {c['text_bright']};
     }}
 
     QLabel#pageSub {{
@@ -193,9 +252,10 @@ def stylesheet(c: dict) -> str:
         text-transform: uppercase;
     }}
 
+    /* Badges & Pills */
     QLabel#pill {{
         background: {c['raised']};
-        color: {c['subtext']};
+        color: {c['text']};
         border: 1px solid {c['line']};
         border-radius: 12px;
         padding: 4px 10px;
@@ -206,7 +266,7 @@ def stylesheet(c: dict) -> str:
     QLabel#pillActive {{
         background: {c['accent_light']};
         color: {c['accent_hi']};
-        border: 1px solid {c['glass_border_hi']};
+        border: 1px solid {c['accent']};
         border-radius: 12px;
         padding: 4px 10px;
         font-size: 11px;
@@ -216,7 +276,7 @@ def stylesheet(c: dict) -> str:
     QLabel#pillSuccess {{
         background: {c['success_bg']};
         color: {c['success']};
-        border: 1px solid {c['success_glow']};
+        border: 1px solid {c['success']};
         border-radius: 12px;
         padding: 4px 10px;
         font-size: 11px;
@@ -224,7 +284,7 @@ def stylesheet(c: dict) -> str:
     }}
 
     /* =========================================================================
-       BUTTONS
+       BUTTONS (Clear hover glow & active states)
        ========================================================================= */
     QPushButton {{
         background: {c['raised']};
@@ -240,13 +300,13 @@ def stylesheet(c: dict) -> str:
 
     QPushButton:hover {{
         background: {c['raised_hover']};
-        border: 1px solid {c['subtext']};
+        border: 1px solid {c['accent']};
         color: {c['text_bright']};
     }}
 
     QPushButton:pressed {{
         background: {c['panel_hi']};
-        border: 1px solid {c['accent']};
+        border: 1px solid {c['accent_deep']};
     }}
 
     QPushButton:disabled {{
@@ -267,7 +327,7 @@ def stylesheet(c: dict) -> str:
 
     QPushButton#primary:hover {{
         background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {c['accent_hi']}, stop:1 {c['accent']});
-        border: 1px solid #FFFFFF;
+        border: 1.5px solid #FFFFFF;
     }}
 
     QPushButton#primary:pressed {{
@@ -287,7 +347,7 @@ def stylesheet(c: dict) -> str:
     QPushButton#secondary:hover {{
         background: {c['raised_hover']};
         color: {c['text_bright']};
-        border: 1px solid {c['subtext']};
+        border: 1px solid {c['accent']};
     }}
 
     QPushButton#navButton {{
@@ -328,8 +388,12 @@ def stylesheet(c: dict) -> str:
         selection-background-color: {c['accent']};
     }}
 
+    QLineEdit:hover {{
+        border: 1px solid {c['subtext']};
+    }}
+
     QLineEdit:focus {{
-        border: 1px solid {c['accent']};
+        border: 1.5px solid {c['accent']};
         background: {c['panel']};
     }}
 
@@ -345,11 +409,11 @@ def stylesheet(c: dict) -> str:
     }}
 
     QComboBox:hover {{
-        border: 1px solid {c['subtext']};
+        border: 1px solid {c['accent']};
     }}
 
     QComboBox:focus {{
-        border: 1px solid {c['accent']};
+        border: 1.5px solid {c['accent']};
     }}
 
     QComboBox::drop-down {{
@@ -384,7 +448,7 @@ def stylesheet(c: dict) -> str:
     }}
 
     QSlider::handle:horizontal {{
-        background: {c['text_bright']};
+        background: {c['panel']};
         border: 2px solid {c['accent']};
         width: 16px;
         height: 16px;
@@ -393,7 +457,7 @@ def stylesheet(c: dict) -> str:
     }}
 
     QSlider::handle:horizontal:hover {{
-        background: {c['accent_hi']};
+        background: {c['accent']};
         border: 2px solid #FFFFFF;
         width: 18px;
         height: 18px;
@@ -421,7 +485,7 @@ def stylesheet(c: dict) -> str:
        CHECKBOXES
        ========================================================================= */
     QCheckBox {{
-        color: {c['text']};
+        color: {c['text_bright']};
         spacing: 9px;
         font-size: 13px;
     }}
@@ -435,12 +499,12 @@ def stylesheet(c: dict) -> str:
     }}
 
     QCheckBox::indicator:hover {{
-        border: 1px solid {c['accent']};
+        border: 1.5px solid {c['accent']};
     }}
 
     QCheckBox::indicator:checked {{
         background: {c['accent']};
-        border: 1px solid {c['accent_hi']};
+        border: 1.5px solid {c['accent_hi']};
     }}
 
     /* =========================================================================

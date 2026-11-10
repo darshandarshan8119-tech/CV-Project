@@ -45,8 +45,8 @@ class ProcessedItemCard(QFrame):
         # Metadata Details
         info = QVBoxLayout()
         info.setSpacing(3)
-        name_lbl = QLabel(record.get("filename", "Enhanced Photo"))
-        name_lbl.setStyleSheet("font-size: 14px; font-weight: 700; color: #FFFFFF;")
+        name_lbl = QLabel(record.get("filename", "Enhanced Photo"), objectName="cardTitle")
+        name_lbl.setStyleSheet("font-size: 14px;")
         info.addWidget(name_lbl)
 
         src_lbl = QLabel(f"Source: {Path(record.get('source_path', '')).name}", objectName="muted")

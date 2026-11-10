@@ -49,13 +49,15 @@ class SettingsPage(QWidget):
 
         # 1. Appearance Card
         c1 = QFrame(objectName="card")
-        HoverLiftFilter(c1, blur_radius=12)
+        c1.setCursor(Qt.PointingHandCursor)
+        HoverLiftFilter(c1, blur_radius=14, glow_name="violet")
         l1 = QVBoxLayout(c1)
         l1.setContentsMargins(22, 18, 22, 18)
         l1.setSpacing(10)
-        l1.addWidget(QLabel("Appearance Theme", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
+        l1.addWidget(QLabel("Appearance Theme", objectName="cardTitle"))
 
         self.theme_check = QCheckBox("Use Light Mode (Studio Titanium)")
+        self.theme_check.setCursor(Qt.PointingHandCursor)
         is_light = self.database.get_setting("theme", "dark") == "light"
         self.theme_check.setChecked(is_light)
         self.theme_check.toggled.connect(self._handle_theme_toggle)
@@ -64,11 +66,12 @@ class SettingsPage(QWidget):
 
         # 2. Storage & Export Directory Card
         c2 = QFrame(objectName="card")
-        HoverLiftFilter(c2, blur_radius=12)
+        c2.setCursor(Qt.PointingHandCursor)
+        HoverLiftFilter(c2, blur_radius=14, glow_name="cyan")
         l2 = QVBoxLayout(c2)
         l2.setContentsMargins(22, 18, 22, 18)
         l2.setSpacing(10)
-        l2.addWidget(QLabel("Processed Output Directory", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
+        l2.addWidget(QLabel("Processed Output Directory", objectName="cardTitle"))
         l2.addWidget(
             QLabel("Where enhanced copies and exported images are saved. Your original source photos are never modified.", objectName="muted")
         )
@@ -95,11 +98,12 @@ class SettingsPage(QWidget):
 
         # 3. Quality & Blur Thresholds Card
         c3 = QFrame(objectName="card")
-        HoverLiftFilter(c3, blur_radius=12)
+        c3.setCursor(Qt.PointingHandCursor)
+        HoverLiftFilter(c3, blur_radius=14, glow_name="violet")
         l3 = QVBoxLayout(c3)
         l3.setContentsMargins(22, 18, 22, 18)
         l3.setSpacing(12)
-        l3.addWidget(QLabel("Quality & Blur Sensitivity", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
+        l3.addWidget(QLabel("Quality & Blur Sensitivity", objectName="cardTitle"))
         l3.addWidget(
             QLabel("Tune deterministic computer vision thresholds for sharpness and 'Needs Review' blur detection.", objectName="muted")
         )
@@ -107,13 +111,16 @@ class SettingsPage(QWidget):
         # Blur threshold slider
         blur_val = float(self.database.get_setting("blur_threshold", "130.0"))
         blur_row = QHBoxLayout()
-        blur_row.addWidget(QLabel("Blur Cutoff (Laplacian Variance):", styleSheet="font-weight: 600; font-size: 13px;"))
+        blur_lbl_title = QLabel("Blur Cutoff (Laplacian Variance):")
+        blur_lbl_title.setStyleSheet("font-weight: 600; font-size: 13px;")
+        blur_row.addWidget(blur_lbl_title)
         self.blur_lbl = QLabel(f"{int(blur_val)}", objectName="pillActive")
         blur_row.addStretch()
         blur_row.addWidget(self.blur_lbl)
         l3.addLayout(blur_row)
 
         self.blur_slider = QSlider(Qt.Horizontal)
+        self.blur_slider.setCursor(Qt.PointingHandCursor)
         self.blur_slider.setRange(40, 400)
         self.blur_slider.setValue(int(blur_val))
         self.blur_slider.valueChanged.connect(self._on_blur_changed)
@@ -127,11 +134,12 @@ class SettingsPage(QWidget):
 
         # 4. Privacy & Maintenance Card
         c4 = QFrame(objectName="card")
-        HoverLiftFilter(c4, blur_radius=12)
+        c4.setCursor(Qt.PointingHandCursor)
+        HoverLiftFilter(c4, blur_radius=14, glow_name="coral")
         l4 = QVBoxLayout(c4)
         l4.setContentsMargins(22, 18, 22, 18)
         l4.setSpacing(12)
-        l4.addWidget(QLabel("Privacy & Library Maintenance", styleSheet="font-size: 15px; font-weight: 700; color: #FFFFFF;"))
+        l4.addWidget(QLabel("Privacy & Library Maintenance", objectName="cardTitle"))
 
         local_privacy = QCheckBox("Local-Only Privacy: Zero cloud uploads, zero telemetry")
         local_privacy.setChecked(True)

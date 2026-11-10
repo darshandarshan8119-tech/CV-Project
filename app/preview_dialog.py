@@ -86,8 +86,8 @@ class PreviewDialog(QDialog):
 
         meta_layout.addWidget(QLabel("PHOTO DETAILS", objectName="metricLabel"))
 
-        name_lbl = QLabel(image_data.get("filename", "Unknown"))
-        name_lbl.setStyleSheet("font-size: 17px; font-weight: 700; color: #FFFFFF;")
+        name_lbl = QLabel(image_data.get("filename", "Unknown"), objectName="cardTitle")
+        name_lbl.setStyleSheet("font-size: 17px;")
         name_lbl.setWordWrap(True)
         meta_layout.addWidget(name_lbl)
 

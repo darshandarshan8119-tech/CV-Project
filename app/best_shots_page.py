@@ -45,8 +45,8 @@ class SimilarGroupRankCard(QFrame):
 
         # Header
         top = QHBoxLayout()
-        title = QLabel(f"Similar Photo Set ({len(ranked_images)} variations)")
-        title.setStyleSheet("font-weight: 700; font-size: 15px; color: #FFFFFF;")
+        title = QLabel(f"Similar Photo Set ({len(ranked_images)} variations)", objectName="cardTitle")
+        title.setStyleSheet("font-size: 15px;")
         top.addWidget(title)
         top.addStretch()
 
@@ -147,7 +147,8 @@ class BestShotsPage(QWidget):
         p_layout.setSpacing(10)
 
         p_top = QHBoxLayout()
-        self.progress_status = QLabel("Evaluating sharpness and exposure metrics…", styleSheet="font-weight: 600; color: #FFFFFF;")
+        self.progress_status = QLabel("Evaluating sharpness and exposure metrics…", objectName="cardTitle")
+        self.progress_status.setStyleSheet("font-weight: 600; font-size: 13px;")
         p_top.addWidget(self.progress_status)
         p_top.addStretch()
 

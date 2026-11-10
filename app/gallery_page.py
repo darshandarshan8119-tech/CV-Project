@@ -55,8 +55,8 @@ class ImageCard(QFrame):
             layout.addWidget(self.thumb_label)
 
             # Filename
-            self.name_label = QLabel(data.get("filename", "Photo"))
-            self.name_label.setStyleSheet("font-weight: 700; font-size: 13px; color: #FFFFFF;")
+            self.name_label = QLabel(data.get("filename", "Photo"), objectName="cardTitle")
+            self.name_label.setStyleSheet("font-size: 13px;")
             self.name_label.setWordWrap(False)
             layout.addWidget(self.name_label)
 
@@ -82,8 +82,8 @@ class ImageCard(QFrame):
 
             info_layout = QVBoxLayout()
             info_layout.setSpacing(2)
-            self.name_label = QLabel(data.get("filename", "Photo"))
-            self.name_label.setStyleSheet("font-weight: 700; font-size: 14px; color: #FFFFFF;")
+            self.name_label = QLabel(data.get("filename", "Photo"), objectName="cardTitle")
+            self.name_label.setStyleSheet("font-size: 14px;")
             info_layout.addWidget(self.name_label)
 
             path_lbl = QLabel(data.get("path", ""), objectName="muted")

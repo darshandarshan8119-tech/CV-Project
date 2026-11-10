@@ -86,8 +86,7 @@ class EnhancerPage(QWidget):
 
         # View mode toggle buttons
         mode_bar = QHBoxLayout()
-        self.mode_lbl = QLabel("INTERACTIVE BEFORE / AFTER SLIDER")
-        self.mode_lbl.setStyleSheet("font-size: 11px; font-weight: 700; color: #7C8497; letter-spacing: 0.8px;")
+        self.mode_lbl = QLabel("INTERACTIVE BEFORE / AFTER SLIDER", objectName="metricLabel")
         mode_bar.addWidget(self.mode_lbl)
         mode_bar.addStretch()
 
@@ -120,8 +119,7 @@ class EnhancerPage(QWidget):
         self.progress_bar.setVisible(False)
         v_layout.addWidget(self.progress_bar)
 
-        self.info_status = QLabel("Ready • Drag the central divider to compare before and after")
-        self.info_status.setStyleSheet("font-size: 12px; color: #7C8497;")
+        self.info_status = QLabel("Ready • Drag the central divider to compare before and after", objectName="muted")
         v_layout.addWidget(self.info_status)
 
         studio_split.addWidget(viewport_frame, stretch=3)

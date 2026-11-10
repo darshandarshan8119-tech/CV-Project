@@ -25,13 +25,13 @@ class TestUIThemeAndWidgets(unittest.TestCase):
     def test_theme_tokens_and_stylesheet(self):
         """Theme stylesheet must produce valid CSS with Obsidian tokens."""
         dark_qss = stylesheet(DARK)
-        self.assertIn("#090A0F", dark_qss)
-        self.assertIn("#7C6CFF", dark_qss)
+        self.assertIn(DARK["bg"], dark_qss)
+        self.assertIn(DARK["accent"], dark_qss)
         self.assertIn("QFrame#card", dark_qss)
 
         light_qss = stylesheet(LIGHT)
-        self.assertIn("#F5F7FB", light_qss)
-        self.assertIn("#6355FF", light_qss)
+        self.assertIn(LIGHT["bg"], light_qss)
+        self.assertIn(LIGHT["accent"], light_qss)
 
     def test_animated_stacked_widget(self):
         """AnimatedStackedWidget should support adding pages and slide transitions."""
@@ -84,3 +84,4 @@ class TestUIThemeAndWidgets(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

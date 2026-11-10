@@ -3,7 +3,7 @@
 Includes:
 - AnimatedStackedWidget: Cross-fade page transition router.
 - NumberCounter: Smooth counting animation for numerical stats.
-- HoverLiftFilter: Interactive card lift + drop shadow animation on mouse hover.
+- HoverLiftFilter: Interactive card lift, pointer cursor, and dynamic glow highlight.
 - FadeHelper: Smooth opacity animations for dialogs and panels.
 """
 from __future__ import annotations
@@ -12,10 +12,7 @@ from typing import Callable, Optional
 from PySide6.QtCore import (
     QEasingCurve,
     QObject,
-    QParallelAnimationGroup,
-    QPoint,
     QPropertyAnimation,
-    QSequentialAnimationGroup,
     Qt,
     QVariantAnimation,
     Signal,
@@ -35,7 +32,7 @@ class AnimatedStackedWidget(QStackedWidget):
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.fade_duration = 200  # ms
+        self.fade_duration = 180  # ms
         self._is_animating = False
 
     def slide_to_index(self, target_index: int):
@@ -113,25 +110,30 @@ class NumberCounter(QObject):
 
 
 class HoverLiftFilter(QObject):
-    """Event filter that adds a subtle lift and ambient glow shadow to any card or frame on hover."""
+    """Event filter that sets hand pointer cursor and triggers interactive hover glow feedback."""
 
     def __init__(
         self,
         target_widget: QWidget,
-        glow_color: QColor = QColor(124, 108, 255, 60),
-        blur_radius: int = 16,
+        glow_color: Optional[QColor] = None,
+        blur_radius: int = 14,
+        glow_name: str = "violet",
     ):
         super().__init__(target_widget)
         self.widget = target_widget
-        self.glow_color = glow_color
-        self.blur_radius = blur_radius
+        self.widget.setCursor(Qt.PointingHandCursor)
+        self.widget.setAttribute(Qt.WA_Hover, True)
+        self.widget.setProperty("glow", glow_name)
 
-        # Create shadow effect
+        # Soft drop shadow without harsh dark offsets
         self.shadow = QGraphicsDropShadowEffect(self.widget)
-        self.shadow.setColor(QColor(0, 0, 0, 80))
-        self.shadow.setBlurRadius(8)
-        self.shadow.setOffset(0, 2)
+        self.shadow.setColor(QColor(0, 0, 0, 0))  # Initially transparent to prevent gray banding boxes
+        self.shadow.setBlurRadius(0)
+        self.shadow.setOffset(0, 0)
         self.widget.setGraphicsEffect(self.shadow)
+
+        self.glow_color = glow_color or QColor(124, 108, 255, 65)
+        self.blur_radius = blur_radius
 
         self.widget.installEventFilter(self)
 
@@ -140,15 +142,15 @@ class HoverLiftFilter(QObject):
             if event.type() == event.Type.Enter:
                 self.shadow.setColor(self.glow_color)
                 self.shadow.setBlurRadius(self.blur_radius)
-                self.shadow.setOffset(0, 4)
-            elif event.type() == event.Type.Leave:
-                self.shadow.setColor(QColor(0, 0, 0, 80))
-                self.shadow.setBlurRadius(8)
                 self.shadow.setOffset(0, 2)
+            elif event.type() == event.Type.Leave:
+                self.shadow.setColor(QColor(0, 0, 0, 0))
+                self.shadow.setBlurRadius(0)
+                self.shadow.setOffset(0, 0)
         return super().eventFilter(watched, event)
 
 
-def fade_in_widget(widget: QWidget, duration: int = 220, callback: Optional[Callable[[], None]] = None):
+def fade_in_widget(widget: QWidget, duration: int = 180, callback: Optional[Callable[[], None]] = None):
     """Applies a smooth fade-in opacity transition to any widget."""
     effect = QGraphicsOpacityEffect(widget)
     widget.setGraphicsEffect(effect)
@@ -166,5 +168,5 @@ def fade_in_widget(widget: QWidget, duration: int = 220, callback: Optional[Call
             callback()
 
     anim.finished.connect(_done)
-    widget._fade_anim = anim  # prevent GC
+    widget._fade_anim = anim
     anim.start()

@@ -48,8 +48,8 @@ class DuplicateItemRow(QFrame):
         # Metadata
         info_col = QVBoxLayout()
         info_col.setSpacing(3)
-        name_lbl = QLabel(data.get("filename", "Photo"))
-        name_lbl.setStyleSheet("font-weight: 700; font-size: 14px; color: #FFFFFF;")
+        name_lbl = QLabel(data.get("filename", "Photo"), objectName="cardTitle")
+        name_lbl.setStyleSheet("font-size: 14px;")
         info_col.addWidget(name_lbl)
 
         path_lbl = QLabel(data.get("path", ""), objectName="muted")
@@ -123,16 +123,16 @@ class DuplicateGroupCard(QFrame):
         # Group header
         top = QHBoxLayout()
         if is_exact:
-            title = QLabel(f"Exact Duplicate Group — {len(images)} copies")
-            title.setStyleSheet("font-weight: 700; font-size: 15px; color: #FFFFFF;")
+            title = QLabel(f"Exact Duplicate Group — {len(images)} copies", objectName="cardTitle")
+            title.setStyleSheet("font-size: 15px;")
             top.addWidget(title)
             top.addStretch()
             badge = QLabel("100% BYTE-FOR-BYTE (SHA-256)", objectName="pill")
             badge.setStyleSheet("color: #FB7185; font-weight: 700; font-size: 11px;")
             top.addWidget(badge)
         else:
-            title = QLabel(f"Visually Similar Group — {len(images)} photos")
-            title.setStyleSheet("font-weight: 700; font-size: 15px; color: #FFFFFF;")
+            title = QLabel(f"Visually Similar Group — {len(images)} photos", objectName="cardTitle")
+            title.setStyleSheet("font-size: 15px;")
             top.addWidget(title)
             top.addStretch()
 
@@ -207,7 +207,8 @@ class DuplicatesPage(QWidget):
         p_layout.setSpacing(10)
 
         p_top = QHBoxLayout()
-        self.progress_status = QLabel("Analyzing cryptographic & perceptual hashes…", styleSheet="font-weight: 600; color: #FFFFFF;")
+        self.progress_status = QLabel("Analyzing cryptographic & perceptual hashes…", objectName="cardTitle")
+        self.progress_status.setStyleSheet("font-weight: 600; font-size: 13px;")
         p_top.addWidget(self.progress_status)
         p_top.addStretch()
 

@@ -34,16 +34,27 @@ from PySide6.QtWidgets import (
 from app.animations import HoverLiftFilter, NumberCounter
 
 
+GLOW_PALETTE = {
+    "violet": QColor(124, 108, 255, 95),
+    "emerald": QColor(16, 185, 129, 95),
+    "coral": QColor(251, 113, 133, 95),
+    "cyan": QColor(6, 182, 212, 95),
+}
+
+
 class GlowCard(QFrame):
     """Glassmorphism card with responsive hover lighting."""
 
-    def __init__(self, parent: Optional[QWidget] = None, glow_color: Optional[QColor] = None):
+    def __init__(self, parent: Optional[QWidget] = None, glow_color: Optional[QColor] = None, glow_name: str = "violet"):
         super().__init__(parent)
         self.setObjectName("card")
+        self.setCursor(Qt.PointingHandCursor)
+        c = glow_color or GLOW_PALETTE.get(glow_name, GLOW_PALETTE["violet"])
         self.hover_filter = HoverLiftFilter(
             self,
-            glow_color=glow_color or QColor(124, 108, 255, 55),
-            blur_radius=18,
+            glow_color=c,
+            blur_radius=16,
+            glow_name=glow_name,
         )
 
 
@@ -56,12 +67,14 @@ class MetricCard(QFrame):
         initial_value: int = 0,
         subtitle: str = "",
         tag: str = "",
+        glow_name: str = "violet",
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.setObjectName("card")
         self.setCursor(Qt.PointingHandCursor)
-        self.hover_filter = HoverLiftFilter(self, glow_color=QColor(124, 108, 255, 45), blur_radius=14)
+        c = GLOW_PALETTE.get(glow_name, GLOW_PALETTE["violet"])
+        self.hover_filter = HoverLiftFilter(self, glow_color=c, blur_radius=16, glow_name=glow_name)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 18, 20, 18)
@@ -271,3 +284,4 @@ class BeforeAfterSliderWidget(QWidget):
         w = max(self.width(), 1)
         ratio = max(0.02, min(0.98, x / w))
         self.set_split_ratio(ratio)
+
